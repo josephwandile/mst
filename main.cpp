@@ -1,15 +1,44 @@
-#include <iostream>
+struct Vertex {
 
-using namespace std;
-
-void hello_aron()
-{
-  cout << "Aron is amazeballs!\n";
+  vector<double> coords;
+  Vertex* parent // initially self-pointer;
+  int rank;
 }
 
-int main()
-{
-  cout << "Hello World!\n";
-  hello_aron();
-  return 0;
+struct Edge {
+  
+  Vertex* u, v;
+  double distance;
+}
+
+struct Graph {
+  int V;
+  int E;
+  vector<Edge*> edges;
+  vector<Vertex*> vertices;
+}
+
+Vertex generateRandomVertex(dimensions) // Instance method
+
+Graph generateGraph(int size, int dimensions) {
+
+
+
+  for (int i = 0; i < size; i++) {
+
+  }
+  // Generate vector<Vertex*> vertices
+
+  // Make singletons
+
+  // Double for loop generates edges
+  void calcEuclideanDist(Edge* e)
+
+  for (int i = 0; i < size; i++) {
+
+
+  }
+
+  Graph new_graph = {vertices.length(), edges.length(), edges, vertices};
+  return new_graph;
 }
