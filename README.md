@@ -3,3 +3,4 @@
 * Which algorithm to use. 
 * Which random seeds to use. 
 * External C++ libraries for timing and graphing?
+* Best way to set up C++ project?
