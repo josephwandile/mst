@@ -1,3 +1,5 @@
+
+
 using namespace std;
 
 // TODO Could have a separate 'subset' struct which just keeps track of rank and parent for every edge in the edges vector
@@ -60,9 +62,9 @@ Graph generateGraph(int size, int dimensions) {
 
   vertices.reserve(size);
 
-  // Gerate vertices
+  // Generate vertices
   for (int i = 0; i < size; i++) {
-    vertices.pushback(generateRandomVertex(dimensions))
+    vertices.pushback(generateRandomVertex(dimensions));
   }
 
   // Instantiate all (n choose 2) edges.
@@ -70,7 +72,7 @@ Graph generateGraph(int size, int dimensions) {
 
   for (int i = 0; i < size; i++) {
 
-    for (int j = i+1; j < size; j++) {
+    for (int j = i + 1; j < size; j++) {
 
       Vertex u = vertices[i];
       Vertex v = vertices[j];
