@@ -120,8 +120,6 @@ void set_union(Vertex* v, Vertex* u){
     }
 
 }
-// NB for joe- inline means that rather than put the function call on the stack, the compiler will call the function essentially
-// by pasting it into the caller. It'll show up as its own call during profiling, though. Delete comment when read.
 
 void inline sortGraphEdgesList(Graph &G){
     sort(G.edges.begin(), G.edges.end());
