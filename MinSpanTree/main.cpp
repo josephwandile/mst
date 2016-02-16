@@ -28,6 +28,10 @@ typedef struct Edge {
     double distance;
 } Edge;
 
+struct edgeCompare {
+    bool operator() (Edge* e1, Edge* e2) { return (e1->distance < e1->distance);}
+} edgeCompare;
+
 typedef struct Graph {
     int V;
     int E;
@@ -96,12 +100,49 @@ Graph generateGraph(long size, int dimensions) {
     return (Graph) {(int) vertices.size(), (int) edges.size(), edges, vertices};
 }
 
+Vertex* find(Vertex* v){
+    if(v->parent != v)
+        v->parent = find(v->parent);
+    return v->parent;
+}
 
+void set_union(Vertex* v, Vertex* u){
+    Vertex* v_root = find(v);
+    Vertex* u_root = find(u);
+    if (v == u){
+        return;
+    }
+    
+    if (v_root->rank < u_root->rank){
+        v_root->parent = u_root;
+    }
+    else if (v_root->rank > u_root->rank){
+        u_root->parent = v_root;
+    }
+    else {
+        u_root->parent = v_root;
+        v_root->rank++;
+    }
+    
+}
+
+vector<Edge*> findMST(Graph &G){
+    vector<Edge*> edgeList;
+    sort(G.edges.begin(), G.edges.end());
+    for(Edge* E : G.edges){
+        if (find(E->u) != find(E->v)){
+            edgeList.push_back(E);
+            set_union(E->u, E->v);
+        }
+    }
+    return edgeList;
+}
 int main(){
     rand_gen.seed(seed_val);
     
     // NB for Jozi- "auto" type is automatic typing, ie best guess (closest to dynamic typing as it gets in cpp)
-    auto G = generateGraph(100, 4);
+    auto G = generateGraph(4, 4);
+    auto MST = findMST(G);
     return 0;
 }
 
