@@ -13,6 +13,18 @@ const size_t pid_seed = hash<thread::id>()(this_thread::get_id());
 seed_seq seed_val { time_seed, clock_seed, pid_seed };
 mt19937_64 rand_gen;
 
+/*
+RANDOMIZATION
+*/
+double generateRandomVal() {
+
+    return generate_canonical<double, 50>(rand_gen);
+}
+
+
+/*
+GRAPH GENERATION
+*/
 typedef struct Vertex {
 
     vector<double> coords;
@@ -27,21 +39,12 @@ typedef struct Edge {
     double distance;
 } Edge;
 
-struct edgeCompare {
-    bool operator() (Edge* e1, Edge* e2) { return (e1->distance < e1->distance);}
-} edgeCompare;
-
 typedef struct Graph {
     int V;
     int E;
     vector<Edge*> edges;
     vector<Vertex*> vertices;
 } Graph;
-
-double generateRandomVal() {
-
-    return generate_canonical<double, 50>(rand_gen);
-}
 
 Vertex* generateRandomVertex(int dimensions) {
 
@@ -95,6 +98,15 @@ Graph generateGraph(long size, int dimensions) {
     return (Graph) {(int) vertices.size(), (int) edges.size(), edges, vertices};
 }
 
+// Used as the comparison function in the sorting of edges
+bool edgeCompare(Edge* e1, Edge* e2) {
+    return (e1->distance < e1->distance);
+}
+
+
+/*
+DISJOINT SET OPERATIONS
+*/
 Vertex* find(Vertex* v){
     if(v->parent != v)
         v->parent = find(v->parent);
@@ -121,8 +133,12 @@ void set_union(Vertex* v, Vertex* u){
 
 }
 
+/*
+KRUSKAL'S MST ALGORITHM
+*/
 void inline sortGraphEdgesList(Graph& G){
-    sort(G.edges.begin(), G.edges.end());
+    // TODO Might want to consider a partial sort
+    sort(G.edges.begin(), G.edges.end(), edgeCompare);
 }
 
 vector<Edge*> findMST(Graph& G){
@@ -137,6 +153,17 @@ vector<Edge*> findMST(Graph& G){
     return edgeList;
 }
 
+
+/*
+UTILITY FUNCTIONS
+*/
+
+// TODO Print out Edge and Vertex Lists for Testing
+
+
+/*
+PROGRAM INTERFACE
+*/
 int main(int argc, char** argv){
     testing();
     rand_gen.seed(seed_val);
