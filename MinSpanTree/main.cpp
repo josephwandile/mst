@@ -167,7 +167,7 @@ PROGRAM INTERFACE
 int main(int argc, char** argv){
     testing();
     rand_gen.seed(seed_val);
-    auto G = generateGraph(4, 4);
+    auto G = generateGraph(100, 4);
     auto MST = findMST(G);
     return 0;
 }
