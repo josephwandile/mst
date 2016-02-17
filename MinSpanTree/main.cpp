@@ -99,9 +99,11 @@ Graph generateGraph(long size, int dimensions) {
 }
 
 // Used as the comparison function in the sorting of edges
-bool edgeCompare(Edge* e1, Edge* e2) {
-    return (e1->distance < e1->distance);
-}
+struct edgeCompare {
+    bool operator() (Edge* e1, Edge* e2) {
+        return (e1->distance < e1->distance);
+    }
+} edgeCompare;
 
 
 /*
