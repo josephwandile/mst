@@ -4,7 +4,7 @@
 #include <random>
 #include <cmath>
 #include <thread>
-
+#include "test.h"
 
 using namespace std;
 const auto time_seed = static_cast<size_t>(time(0));
@@ -121,11 +121,11 @@ void set_union(Vertex* v, Vertex* u){
 
 }
 
-void inline sortGraphEdgesList(Graph &G){
+void inline sortGraphEdgesList(Graph& G){
     sort(G.edges.begin(), G.edges.end());
 }
 
-vector<Edge*> findMST(Graph &G){
+vector<Edge*> findMST(Graph& G){
     vector<Edge*> edgeList;
     sortGraphEdgesList(G);
     for(Edge* E : G.edges){
@@ -137,10 +137,9 @@ vector<Edge*> findMST(Graph &G){
     return edgeList;
 }
 
-
-int main(){
+int main(int argc, char** argv){
+    testing();
     rand_gen.seed(seed_val);
-
     auto G = generateGraph(4, 4);
     auto MST = findMST(G);
     return 0;
