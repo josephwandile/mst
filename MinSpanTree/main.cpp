@@ -46,12 +46,18 @@ typedef struct Graph {
     vector<Vertex*> vertices;
 } Graph;
 
-Vertex* generateRandomVertex(int dimensions) {
-
+Vertex* initializeVertex(vector<double> coords) {
+    
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
     vertex->parent = vertex;
     vertex->rank = 1;
+    vertex->coords = coords;
+    
+    return vertex;
+}
+
+Vertex* generateRandomVertex(int dimensions) {
 
     vector<double> coords(dimensions);
 
@@ -60,8 +66,8 @@ Vertex* generateRandomVertex(int dimensions) {
         coords[i] = (generateRandomVal());
     }
 
-    vertex->coords = coords;
-
+    Vertex* vertex = initializeVertex(coords);
+    
     return vertex;
 }
 
@@ -115,7 +121,7 @@ Vertex* find(Vertex* v){
     return v->parent;
 }
 
-void set_union(Vertex* v, Vertex* u){
+void setUnion(Vertex* v, Vertex* u){
     Vertex* v_root = find(v);
     Vertex* u_root = find(u);
     if (v == u){
@@ -135,6 +141,7 @@ void set_union(Vertex* v, Vertex* u){
 
 }
 
+
 /*
 KRUSKAL'S MST ALGORITHM
 */
@@ -144,16 +151,26 @@ void inline sortGraphEdgeList(Graph& G){
 }
 
 vector<Edge*> findMST(Graph& G){
-    vector<Edge*> edgeList;
+    vector<Edge*> MST;
     sortGraphEdgeList(G);
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
-            edgeList.push_back(E);
-            set_union(E->u, E->v);
+            MST.push_back(E);
+            setUnion(E->u, E->v);
         }
     }
-    return edgeList;
+    return MST;
 }
+
+
+/*
+TESTING
+*/
+// Coordinates irrelevant
+vector<double> default_coords = {0};
+Vertex* A = initializeVertex(default_coords);
+// Hardcode Graph
+
 
 
 /*
