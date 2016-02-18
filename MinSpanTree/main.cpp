@@ -7,6 +7,7 @@
 #include <thread>
 #include <cassert>
 #include <sstream>
+#include <ctime>
 #include "test.h"
 
 using namespace std;
@@ -287,12 +288,30 @@ int main(int argc, char** argv){
         return 0;
     }
     
+    double total_time = 0;
+    double avg_time = 0;
+    
     // TODO record and aggregate data
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions);
+        
+        clock_t    start;
+        start = clock();
+        
         auto MST = findMST(G);
-    }
+        
+        double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+        
+        cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
+        
+        total_time += trial_time;
 
+    }
+    
+    avg_time = total_time / trials;
+    
+    cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
+    
     return 0;
 }
