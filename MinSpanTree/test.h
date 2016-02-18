@@ -1,3 +1,1 @@
-void testing() {
-  std::cout << "Testing...";
-}
+void testing();

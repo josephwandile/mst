@@ -101,7 +101,7 @@ Graph generateGraph(long size, int dimensions) {
 // Used as the comparison function in the sorting of edges
 struct edgeCompare {
     bool operator() (Edge* e1, Edge* e2) {
-        return (e1->distance < e1->distance);
+        return (e1->distance < e2->distance);
     }
 } edgeCompare;
 
@@ -138,14 +138,14 @@ void set_union(Vertex* v, Vertex* u){
 /*
 KRUSKAL'S MST ALGORITHM
 */
-void inline sortGraphEdgesList(Graph& G){
+void inline sortGraphEdgeList(Graph& G){
     // TODO Might want to consider a partial sort
     sort(G.edges.begin(), G.edges.end(), edgeCompare);
 }
 
 vector<Edge*> findMST(Graph& G){
     vector<Edge*> edgeList;
-    sortGraphEdgesList(G);
+    sortGraphEdgeList(G);
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
             edgeList.push_back(E);
@@ -157,19 +157,12 @@ vector<Edge*> findMST(Graph& G){
 
 
 /*
-UTILITY FUNCTIONS
-*/
-
-// TODO Print out Edge and Vertex Lists for Testing
-
-
-/*
 PROGRAM INTERFACE
 */
 int main(int argc, char** argv){
     testing();
     rand_gen.seed(seed_val);
-    auto G = generateGraph(100, 4);
+    auto G = generateGraph(4, 2);
     auto MST = findMST(G);
     return 0;
 }
