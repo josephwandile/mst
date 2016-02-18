@@ -1,9 +1,11 @@
 #include <iostream>
+#include <set>
 #include <vector>
 #include <ctime>
 #include <random>
 #include <cmath>
 #include <thread>
+#include <cassert>
 #include "test.h"
 
 using namespace std;
@@ -168,6 +170,7 @@ TESTING
 */
 void testHardcodedGraph() {
     
+    // Hardcoded vertices and edges
     vector<double> default_coords = {0};
     
     Vertex* A = initializeVertex(default_coords);
@@ -177,8 +180,6 @@ void testHardcodedGraph() {
     Vertex* E = initializeVertex(default_coords);
     Vertex* F = initializeVertex(default_coords);
     Vertex* G = initializeVertex(default_coords);
-    
-    vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
     
     Edge* AB = new Edge({A, B, 7.0});
     Edge* AD = new Edge({A, D, 5.0});
@@ -192,12 +193,19 @@ void testHardcodedGraph() {
     Edge* EG = new Edge({E, G, 9.0});
     Edge* FG = new Edge({F, G, 11.0});
     
+    // Hardcoded graph and true and false MSTs
+    vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
     vector<Edge*> edges_t {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
-    
     Graph G_test {7, 11, edges_t, vertices_t};
+    set<Edge*> true_MST {AD, CE, DF, AB, BE, EG};
+    set<Edge*> false_MST {AD, CE, DF, AB, BE, EF};
     
+    // Test
     auto MST = findMST(G_test);
+    set<Edge*> found_MST(MST.begin(), MST.end());
     
+    assert(found_MST != false_MST);
+    assert(found_MST == true_MST);
 }
 
 
