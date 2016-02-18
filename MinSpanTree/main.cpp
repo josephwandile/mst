@@ -231,7 +231,7 @@ void testUtilityFunctions() {
 
 
 /*
-PROGRAM INTERFACE
+COMMAND LINE INTERFACE
 */
 int main(int argc, char** argv){
     
@@ -272,7 +272,7 @@ int main(int argc, char** argv){
         return 0;
     }
     
-    
+    // TODO record and aggregate data
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions);
