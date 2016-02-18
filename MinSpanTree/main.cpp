@@ -24,11 +24,6 @@ double generateRandomVal() {
 }
 
 
-// N Vertices
-// Assign random weights to every edge between 0 and 1
-// Dimension = 0 should result in this type of graph. i.e. coords are not necessary in every case
-
-
 /*
 GRAPH GENERATION
 */
@@ -85,7 +80,7 @@ double calcEuclideanDist(Vertex* u, Vertex* v) {
     return sqrt(total);
 }
 
-Graph generateGraph(long size, int dimensions) {
+Graph generateImplicitGraph(long size, int dimensions) {
 
     vector<Vertex*> vertices(size);
     vector<Edge*> edges(size * (size - 1) / 2);
@@ -104,11 +99,38 @@ Graph generateGraph(long size, int dimensions) {
             Vertex* v = vertices[j];
             double distance = calcEuclideanDist(u,v);
             Edge* new_edge = new Edge({u, v, distance});
+            // TODO Why not use vertex's push_back method?
             edges[edge_count++] = new_edge;
         }
     }
 
+    // TODO Surely vertices.size() is an unecessary calculation?
     return (Graph) {(int) vertices.size(), (int) edges.size(), edges, vertices};
+}
+
+Graph generateExplicitGraph(long size) {
+    
+    vector<Vertex*> vertices(size);
+    vector<Edge*> edges(size * (size - 1) / 2);
+    
+    for (int i = 0; i < size; i++) {
+        vertices[i] = initializeVertex();
+    }
+    
+    long edge_count = 0;
+    for (int i = 0; i < size; i++) {
+        
+        for (int j = i + 1; j < size; j++) {
+            
+            Vertex* u = vertices[i];
+            Vertex* v = vertices[j];
+            Edge* new_edge = new Edge({u, v, generateRandomVal()});
+            edges[edge_count++] = new_edge;
+        }
+    }
+    
+    
+    return (Graph){(int) vertices.size(), (int) edges.size(), edges, vertices};
 }
 
 // Used as the comparison function in the sorting of edges
@@ -217,17 +239,19 @@ void testUtilityFunctions() {
      TODO Test things like euclidean distance. We know the MST search algo works. Just need to make
      sure its dependencies work, too
      */
-     
+    
 }
 
 
 /*
 PROGRAM INTERFACE
 */
+
+// TODO Dimension = 0 should result in explicit graph. i.e. coords are not necessary in every case
 int main(int argc, char** argv){
     testHardcodedGraph();
     rand_gen.seed(seed_val);
-    auto G = generateGraph(4, 2);
+    auto G = generateImplicitGraph(4, 2);
     auto MST = findMST(G);
     return 0;
 }
