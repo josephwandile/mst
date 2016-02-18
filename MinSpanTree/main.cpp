@@ -52,7 +52,7 @@ Vertex* initializeVertex(vector<double> coords) {
     
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
-    vertex->parent = vertex; // TODO not sure this is actually setting a self pointer
+    vertex->parent = vertex; //
     vertex->rank = 1;
     vertex->coords = coords;
     
@@ -148,7 +148,6 @@ void setUnion(Vertex* v, Vertex* u){
 KRUSKAL'S MST ALGORITHM
 */
 void inline sortGraphEdgeList(Graph& G){
-    // TODO Might want to consider a partial sort
     sort(G.edges.begin(), G.edges.end(), edgeCompare);
 }
 
