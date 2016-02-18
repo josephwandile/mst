@@ -6,6 +6,7 @@
 #include <cmath>
 #include <thread>
 #include <cassert>
+#include <sstream>
 #include "test.h"
 
 using namespace std;
@@ -80,41 +81,24 @@ double calcEuclideanDist(Vertex* u, Vertex* v) {
     return sqrt(total);
 }
 
-Graph generateImplicitGraph(long size, int dimensions) {
-
+Graph generateGraph(long size, int dimensions) {
+    
     vector<Vertex*> vertices(size);
     vector<Edge*> edges(size * (size - 1) / 2);
-
-    // Generate vertices
-    for (int i = 0; i < size; i++) {
-        vertices[i] = generateRandomVertex(dimensions);
-    }
-
-    long edge_count = 0;
-    for (int i = 0; i < size; i++) {
-
-        for (int j = i + 1; j < size; j++) {
-
-            Vertex* u = vertices[i];
-            Vertex* v = vertices[j];
-            double distance = calcEuclideanDist(u,v);
-            Edge* new_edge = new Edge({u, v, distance});
-            // TODO Why not use vertex's push_back method?
-            edges[edge_count++] = new_edge;
+    
+    bool in_euclidean_space = (dimensions == 0);
+    
+    if (!in_euclidean_space) {
+        
+        // Random weights -- coordinates in space meaningless
+        for (int i = 0; i < size; i++) {
+            vertices[i] = initializeVertex();
         }
     }
-
-    // TODO Surely vertices.size() is an unecessary calculation?
-    return (Graph) {(int) vertices.size(), (int) edges.size(), edges, vertices};
-}
-
-Graph generateExplicitGraph(long size) {
     
-    vector<Vertex*> vertices(size);
-    vector<Edge*> edges(size * (size - 1) / 2);
-    
+    // Coordinates in space instrumental
     for (int i = 0; i < size; i++) {
-        vertices[i] = initializeVertex();
+        vertices[i] = generateRandomVertex(dimensions);
     }
     
     long edge_count = 0;
@@ -124,16 +108,21 @@ Graph generateExplicitGraph(long size) {
             
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
-            Edge* new_edge = new Edge({u, v, generateRandomVal()});
+            
+            // Distance == Edge Weight
+            double distance = in_euclidean_space ? generateRandomVal() : calcEuclideanDist(u,v);
+            
+            // TODO Why not use vertex's push_back method?
+            Edge* new_edge = new Edge({u, v, distance});
             edges[edge_count++] = new_edge;
         }
     }
     
-    
     return (Graph){(int) vertices.size(), (int) edges.size(), edges, vertices};
 }
 
-// Used as the comparison function in the sorting of edges
+
+// Using a struct for comparison is optimized more at low level
 struct edgeCompare {
     bool operator() (Edge* e1, Edge* e2) {
         return (e1->distance < e2->distance);
@@ -230,8 +219,6 @@ void testHardcodedGraph() {
     
     assert(found_MST != false_MST);
     assert(found_MST == true_MST);
-    
-    cout << "All tests pass\n";
 }
 
 void testUtilityFunctions() {
@@ -246,12 +233,51 @@ void testUtilityFunctions() {
 /*
 PROGRAM INTERFACE
 */
-
-// TODO Dimension = 0 should result in explicit graph. i.e. coords are not necessary in every case
 int main(int argc, char** argv){
-    testHardcodedGraph();
-    rand_gen.seed(seed_val);
-    auto G = generateImplicitGraph(4, 2);
-    auto MST = findMST(G);
+    
+    if (argc != 5) {
+        return -1;
+    }
+    
+    vector<int> params;
+    
+    for (int i = 1; i < argc; i++) {
+        
+        istringstream char_param (argv[i]);
+        int int_param;
+
+        if (char_param >> int_param) {
+            params.push_back(int_param);
+        } else {
+            return -1;
+        }
+    }
+    
+    int flag = params[0];
+    long size = params[1];
+    int trials = params[2];
+    int dimensions = params[3];
+    
+    if (dimensions == 1) {
+        return -1;
+    }
+    
+    // TODO Make tests cutomizable
+    if (flag == 1) {
+        cout << "\nTesting\n";
+        testHardcodedGraph();
+        cout << "\nMST Working on Hardcoded Graph\n";
+        cout << "\nAll Tests Pass\n";
+        
+        return 0;
+    }
+    
+    
+    for (int trial = 0; trial < trials; trial++) {
+        rand_gen.seed(seed_val);
+        auto G = generateGraph(size, dimensions);
+        auto MST = findMST(G);
+    }
+
     return 0;
 }
