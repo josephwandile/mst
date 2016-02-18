@@ -50,7 +50,7 @@ Vertex* initializeVertex(vector<double> coords) {
     
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
-    vertex->parent = vertex;
+    vertex->parent = vertex; // TODO not sure this is actually setting a self pointer
     vertex->rank = 1;
     vertex->coords = coords;
     
@@ -166,18 +166,46 @@ vector<Edge*> findMST(Graph& G){
 /*
 TESTING
 */
-// Coordinates irrelevant
-vector<double> default_coords = {0};
-Vertex* A = initializeVertex(default_coords);
-// Hardcode Graph
-
+void testHardcodedGraph() {
+    
+    vector<double> default_coords = {0};
+    
+    Vertex* A = initializeVertex(default_coords);
+    Vertex* B = initializeVertex(default_coords);
+    Vertex* C = initializeVertex(default_coords);
+    Vertex* D = initializeVertex(default_coords);
+    Vertex* E = initializeVertex(default_coords);
+    Vertex* F = initializeVertex(default_coords);
+    Vertex* G = initializeVertex(default_coords);
+    
+    vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
+    
+    Edge* AB = new Edge({A, B, 7.0});
+    Edge* AD = new Edge({A, D, 5.0});
+    Edge* BC = new Edge({B, C, 8.0});
+    Edge* BD = new Edge({B, D, 9.0});
+    Edge* BE = new Edge({B, E, 7.0});
+    Edge* CE = new Edge({C, E, 5.0});
+    Edge* DE = new Edge({D, E, 15.0});
+    Edge* DF = new Edge({D, F, 6.0});
+    Edge* EF = new Edge({E, F, 7.0});
+    Edge* EG = new Edge({E, G, 9.0});
+    Edge* FG = new Edge({F, G, 11.0});
+    
+    vector<Edge*> edges_t {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
+    
+    Graph G_test {7, 11, edges_t, vertices_t};
+    
+    auto MST = findMST(G_test);
+    
+}
 
 
 /*
 PROGRAM INTERFACE
 */
 int main(int argc, char** argv){
-    testing();
+    testHardcodedGraph();
     rand_gen.seed(seed_val);
     auto G = generateGraph(4, 2);
     auto MST = findMST(G);
