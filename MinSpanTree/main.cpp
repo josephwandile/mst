@@ -83,8 +83,9 @@ double calcEuclideanDist(Vertex* u, Vertex* v) {
 
 Graph generateGraph(long size, int dimensions) {
     
+    long num_edges = (size * (size - 1) / 2);
     vector<Vertex*> vertices(size);
-    vector<Edge*> edges(size * (size - 1) / 2);
+    vector<Edge*> edges(num_edges);
     
     bool in_euclidean_space = (dimensions == 0);
     
@@ -118,7 +119,8 @@ Graph generateGraph(long size, int dimensions) {
         }
     }
     
-    return (Graph){(int) vertices.size(), (int) edges.size(), edges, vertices};
+    // TODO Why are these cast to ints? Should they be longs? Obviously that would change the Graph struct
+    return (Graph){(int) size, (int) num_edges, edges, vertices};
 }
 
 
