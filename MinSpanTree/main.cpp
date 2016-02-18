@@ -24,6 +24,11 @@ double generateRandomVal() {
 }
 
 
+// N Vertices
+// Assign random weights to every edge between 0 and 1
+// Dimension = 0 should result in this type of graph. i.e. coords are not necessary in every case
+
+
 /*
 GRAPH GENERATION
 */
@@ -48,7 +53,7 @@ typedef struct Graph {
     vector<Vertex*> vertices;
 } Graph;
 
-Vertex* initializeVertex(vector<double> coords) {
+Vertex* initializeVertex(vector<double> coords = {0}) {
     
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
@@ -170,15 +175,13 @@ TESTING
 void testHardcodedGraph() {
     
     // Hardcoded vertices and edges
-    vector<double> default_coords = {0};
-    
-    Vertex* A = initializeVertex(default_coords);
-    Vertex* B = initializeVertex(default_coords);
-    Vertex* C = initializeVertex(default_coords);
-    Vertex* D = initializeVertex(default_coords);
-    Vertex* E = initializeVertex(default_coords);
-    Vertex* F = initializeVertex(default_coords);
-    Vertex* G = initializeVertex(default_coords);
+    Vertex* A = initializeVertex();
+    Vertex* B = initializeVertex();
+    Vertex* C = initializeVertex();
+    Vertex* D = initializeVertex();
+    Vertex* E = initializeVertex();
+    Vertex* F = initializeVertex();
+    Vertex* G = initializeVertex();
     
     Edge* AB = new Edge({A, B, 7.0});
     Edge* AD = new Edge({A, D, 5.0});
@@ -205,6 +208,16 @@ void testHardcodedGraph() {
     
     assert(found_MST != false_MST);
     assert(found_MST == true_MST);
+    
+    cout << "All tests pass\n";
+}
+
+void testUtilityFunctions() {
+    /* 
+     TODO Test things like euclidean distance. We know the MST search algo works. Just need to make
+     sure its dependencies work, too
+     */
+     
 }
 
 
