@@ -51,13 +51,13 @@ typedef struct Graph {
 } Graph;
 
 Vertex* initializeVertex(vector<double> coords = {0}) {
-    
+
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
     vertex->parent = vertex; //
     vertex->rank = 1;
     vertex->coords = coords;
-    
+
     return vertex;
 }
 
@@ -71,7 +71,7 @@ Vertex* generateRandomVertex(int dimensions) {
     }
 
     Vertex* vertex = initializeVertex(coords);
-    
+
     return vertex;
 }
 
@@ -83,43 +83,43 @@ double calcEuclideanDist(Vertex* u, Vertex* v) {
 }
 
 Graph generateGraph(long size, int dimensions) {
-    
+
     long num_edges = (size * (size - 1) / 2);
     vector<Vertex*> vertices(size);
     vector<Edge*> edges(num_edges);
-    
+
     bool in_euclidean_space = (dimensions == 0);
-    
+
     if (!in_euclidean_space) {
-        
+
         // Random weights -- coordinates in space meaningless
         for (int i = 0; i < size; i++) {
             vertices[i] = initializeVertex();
         }
     }
-    
+
     // Coordinates in space instrumental
     for (int i = 0; i < size; i++) {
         vertices[i] = generateRandomVertex(dimensions);
     }
-    
+
     long edge_count = 0;
     for (int i = 0; i < size; i++) {
-        
+
         for (int j = i + 1; j < size; j++) {
-            
+
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
-            
+
             // Distance == Edge Weight
             double distance = in_euclidean_space ? generateRandomVal() : calcEuclideanDist(u,v);
-            
+
             // TODO Why not use vertex's push_back method?
             Edge* new_edge = new Edge({u, v, distance});
             edges[edge_count++] = new_edge;
         }
     }
-    
+
     // TODO Why are these cast to ints? Should they be longs? Obviously that would change the Graph struct
     return (Graph){(int) size, (int) num_edges, edges, vertices};
 }
@@ -167,7 +167,7 @@ void setUnion(Vertex* v, Vertex* u){
 KRUSKAL'S MST ALGORITHM
 */
 typedef struct MST {
-    
+
     vector<Edge*> path;
     double total_weight;
 } MST;
@@ -177,7 +177,7 @@ void inline sortGraphEdgeList(Graph& G){
 }
 
 MST findMST(Graph& G){
-    
+
     MST* foundMST = new MST();
 
     sortGraphEdgeList(G);
@@ -196,7 +196,7 @@ MST findMST(Graph& G){
 TESTING
 */
 void testHardcodedGraph() {
-    
+
     // Hardcoded vertices and edges
     Vertex* A = initializeVertex();
     Vertex* B = initializeVertex();
@@ -205,7 +205,7 @@ void testHardcodedGraph() {
     Vertex* E = initializeVertex();
     Vertex* F = initializeVertex();
     Vertex* G = initializeVertex();
-    
+
     Edge* AB = new Edge({A, B, 7.0});
     Edge* AD = new Edge({A, D, 5.0});
     Edge* BC = new Edge({B, C, 8.0});
@@ -217,7 +217,7 @@ void testHardcodedGraph() {
     Edge* EF = new Edge({E, F, 7.0});
     Edge* EG = new Edge({E, G, 9.0});
     Edge* FG = new Edge({F, G, 11.0});
-    
+
     // Hardcoded graph and true and false MSTs
     vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
     vector<Edge*> edges_t {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
@@ -231,18 +231,18 @@ void testHardcodedGraph() {
     double false_weight = 40;
     vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
     MST false_MST {false_path, false_weight};
-    
+
     // Test
     assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
     assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
 }
 
 void testUtilityFunctions() {
-    /* 
+    /*
      TODO Test things like euclidean distance. We know the MST search algo works. Just need to make
      sure its dependencies work, too
      */
-    
+
 }
 
 
@@ -250,15 +250,15 @@ void testUtilityFunctions() {
 COMMAND LINE INTERFACE
 */
 int main(int argc, char** argv){
-    
+
     if (argc != 5) {
         return -1;
     }
-    
+
     vector<int> params;
-    
+
     for (int i = 1; i < argc; i++) {
-        
+
         istringstream char_param (argv[i]);
         int int_param;
 
@@ -268,50 +268,50 @@ int main(int argc, char** argv){
             return -1;
         }
     }
-    
+
     int flag = params[0];
     long size = params[1];
     int trials = params[2];
     int dimensions = params[3];
-    
+
     if (dimensions == 1) {
         return -1;
     }
-    
+
     // TODO Make tests cutomizable
     if (flag == 1) {
         cout << "\nTesting\n";
         testHardcodedGraph();
         cout << "\nMST Working on Hardcoded Graph\n";
         cout << "\nAll Tests Pass\n";
-        
+
         return 0;
     }
-    
+
     double total_time = 0;
     double avg_time = 0;
-    
+
     // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions);
-        
+
         clock_t    start;
         start = clock();
-        
+
         auto MST = findMST(G);
-        
+
         double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
-        
+
         cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
-        
+
         total_time += trial_time;
 
     }
     
     avg_time = total_time / trials;
-    
+
     cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
-    
+
     return 0;
 }
