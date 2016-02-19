@@ -1,2 +1,6 @@
 .DS_Store
+<<<<<<< HEAD
 MinSpanTree.xcodeproj/*
+=======
+*xcode*
+>>>>>>> bc34b61929ee826ed8c36d7f67de5191de4d9d46
