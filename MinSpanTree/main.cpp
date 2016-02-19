@@ -308,7 +308,7 @@ int main(int argc, char** argv){
         total_time += trial_time;
 
     }
-    
+
     avg_time = total_time / trials;
 
     cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
