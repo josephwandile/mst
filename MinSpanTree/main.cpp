@@ -7,6 +7,7 @@
 #include <thread>
 #include <cassert>
 #include <sstream>
+#include <ctime>
 #include "test.h"
 
 using namespace std;
@@ -165,20 +166,29 @@ void setUnion(Vertex* v, Vertex* u){
 /*
 KRUSKAL'S MST ALGORITHM
 */
+typedef struct MST {
+    
+    vector<Edge*> path;
+    double total_weight;
+} MST;
+
 void inline sortGraphEdgeList(Graph& G){
     sort(G.edges.begin(), G.edges.end(), edgeCompare);
 }
 
-vector<Edge*> findMST(Graph& G){
-    vector<Edge*> MST;
+MST findMST(Graph& G){
+    
+    MST* foundMST = new MST();
+
     sortGraphEdgeList(G);
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
-            MST.push_back(E);
+            foundMST->path.push_back(E);
+            foundMST->total_weight += E->distance;
             setUnion(E->u, E->v);
         }
     }
-    return MST;
+    return *foundMST;
 }
 
 
@@ -212,15 +222,19 @@ void testHardcodedGraph() {
     vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
     vector<Edge*> edges_t {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
     Graph G_test {7, 11, edges_t, vertices_t};
-    set<Edge*> true_MST {AD, CE, DF, AB, BE, EG};
-    set<Edge*> false_MST {AD, CE, DF, AB, BE, EF};
+    MST found_MST = findMST(G_test);
+
+    vector<Edge*> true_path {AD, CE, DF, AB, BE, EG};
+    double true_weight = 39;
+    MST true_MST {true_path, true_weight};
+
+    double false_weight = 40;
+    vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
+    MST false_MST {false_path, false_weight};
     
     // Test
-    auto MST = findMST(G_test);
-    set<Edge*> found_MST(MST.begin(), MST.end());
-    
-    assert(found_MST != false_MST);
-    assert(found_MST == true_MST);
+    assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
+    assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
 }
 
 void testUtilityFunctions() {
@@ -274,12 +288,30 @@ int main(int argc, char** argv){
         return 0;
     }
     
-    // TODO record and aggregate data
+    double total_time = 0;
+    double avg_time = 0;
+    
+    // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions);
+        
+        clock_t    start;
+        start = clock();
+        
         auto MST = findMST(G);
-    }
+        
+        double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+        
+        cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
+        
+        total_time += trial_time;
 
+    }
+    
+    avg_time = total_time / trials;
+    
+    cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
+    
     return 0;
 }
