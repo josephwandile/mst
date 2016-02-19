@@ -291,7 +291,7 @@ int main(int argc, char** argv){
     double total_time = 0;
     double avg_time = 0;
     
-    // TODO record and aggregate data
+    // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions);
