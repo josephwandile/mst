@@ -219,9 +219,9 @@ void testHardcodedGraph() {
     Edge* FG = new Edge({F, G, 11.0});
 
     // Hardcoded graph and true and false MSTs
-    vector<Vertex*> vertices_t {A,B,C,D,E,F,G};
-    vector<Edge*> edges_t {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
-    Graph G_test {7, 11, edges_t, vertices_t};
+    vector<Vertex*> vertices_list {A,B,C,D,E,F,G};
+    vector<Edge*> edges_list {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
+    Graph G_test {7, 11, edges_list, vertices_list};
     MST found_MST = findMST(G_test);
 
     vector<Edge*> true_path {AD, CE, DF, AB, BE, EG};
