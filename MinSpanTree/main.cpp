@@ -6,9 +6,11 @@
 #include <cmath>
 #include <thread>
 #include <cassert>
+#include <fstream>
 #include <sstream>
 #include <ctime>
 #include "test.h"
+#include <String>
 
 using namespace std;
 const auto time_seed = static_cast<size_t>(time(0));
@@ -75,18 +77,23 @@ Vertex* generateRandomVertex(int dimensions) {
     return vertex;
 }
 
-double calcEuclideanDist(Vertex* u, Vertex* v) {
+bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
     double total = 0;
-    for (int i = 0; i < (u->coords).size(); i++)
+    for (int i = 0; i < (u->coords).size(); i++){
         total += pow((u->coords[i] - v->coords[i]),2);
-    return sqrt(total);
+        if (total > (threshold * threshold))
+            return false;
+    }
+    *d = sqrt(total);
+    return true;
 }
 
-Graph generateGraph(long size, int dimensions) {
+Graph generateGraph(long size, int dimensions, double weightThresh) {
 
-    long num_edges = (size * (size - 1) / 2);
+    long num_edges = weightThresh * (size * (size - 1) / 2);
     vector<Vertex*> vertices(size);
-    vector<Edge*> edges(num_edges);
+    vector<Edge*> edges;
+    edges.reserve(num_edges);
 
     bool in_euclidean_space = (dimensions == 0);
 
@@ -103,20 +110,24 @@ Graph generateGraph(long size, int dimensions) {
         vertices[i] = generateRandomVertex(dimensions);
     }
 
-    long edge_count = 0;
+    //long edge_count = 0;
     for (int i = 0; i < size; i++) {
-
         for (int j = i + 1; j < size; j++) {
 
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
-
+            
+            double *distance = new double();
             // Distance == Edge Weight
-            double distance = in_euclidean_space ? generateRandomVal() : calcEuclideanDist(u,v);
-
-            // TODO Why not use vertex's push_back method?
-            Edge* new_edge = new Edge({u, v, distance});
-            edges[edge_count++] = new_edge;
+            if (in_euclidean_space)
+                *distance = generateRandomVal();
+            else
+                if(calcEuclideanDist(u, v, distance, weightThresh)){
+                    Edge* new_edge = new Edge({u, v, *distance});
+                    //edges[edge_count++] = new_edge;
+                    edges.push_back(new_edge);
+                }
+            free(distance);
         }
     }
 
@@ -178,17 +189,17 @@ void inline sortGraphEdgeList(Graph& G){
 
 MST findMST(Graph& G){
 
-    MST* foundMST = new MST();
+    MST foundMST;
 
     sortGraphEdgeList(G);
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
-            foundMST->path.push_back(E);
-            foundMST->total_weight += E->distance;
+            foundMST.path.push_back(E);
+            foundMST.total_weight += E->distance;
             setUnion(E->u, E->v);
         }
     }
-    return *foundMST;
+    return foundMST;
 }
 
 
@@ -245,12 +256,28 @@ void testUtilityFunctions() {
 
 }
 
+void testMaxWeight(int dimensions, string outputLoc, int numTrials, int maxNodes){
+    ofstream outputFile(outputLoc);
+    for (int i = 5; i <= maxNodes; i++){
+        cout << "Doing " << numTrials << " trials for i = " << i << endl;
+        double avg = 0.0;
+        for(int j = 0; j < numTrials; j++){
+            auto G = generateGraph(i, dimensions, 1.0);
+            auto MST = findMST(G);
+            avg += MST.path.back()->distance;
+        }
+        avg /= 5.0;
+        outputFile << i << "\t" << avg << endl;
+    }
+    
+}
 
 /*
 COMMAND LINE INTERFACE
 */
 int main(int argc, char** argv){
-
+    // TODO add double threshold parameter
+    
     if (argc != 5) {
         return -1;
     }
@@ -287,6 +314,11 @@ int main(int argc, char** argv){
 
         return 0;
     }
+    
+    if (flag == 2) {
+        testMaxWeight(3, "SmallNMany50Trials.txt", 100, 200);
+        return 0;
+    }
 
     double total_time = 0;
     double avg_time = 0;
@@ -294,7 +326,7 @@ int main(int argc, char** argv){
     // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
-        auto G = generateGraph(size, dimensions);
+        auto G = generateGraph(size, dimensions, .1815);
 
         clock_t    start;
         start = clock();
@@ -306,6 +338,7 @@ int main(int argc, char** argv){
         cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
 
         total_time += trial_time;
+        
 
     }
 
@@ -313,5 +346,6 @@ int main(int argc, char** argv){
 
     cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
 
+    
     return 0;
 }
