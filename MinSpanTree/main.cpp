@@ -119,16 +119,21 @@ Graph generateGraph(long size, int dimensions, double weightThresh) {
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
             
+            // get double pointer to hold total euclidean distance
             double *distance = new double();
             // Distance == Edge Weight
             if (in_euclidean_space)
                 *distance = generateRandomVal();
+            
+            // if euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
             else
                 if(calcEuclideanDist(u, v, distance, weightThresh)){
                     Edge* new_edge = new Edge({u, v, *distance});
                     //edges[edge_count++] = new_edge;
                     edges.push_back(new_edge);
                 }
+            
+            // free the pointer
             free(distance);
         }
     }
