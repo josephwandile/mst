@@ -315,6 +315,7 @@ void testHardcodedGraph() {
 }
 
 void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
+    rand_gen.seed(seed_val);
     ofstream outputFile(outputLoc);
     for (int i = minNodes; i <= maxNodes; i += 5){
         cout << "Doing " << numTrials << " trials for i = " << i << endl;
@@ -332,6 +333,42 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
                 free(V);
         }
         outputFile << i << "\t" << max << endl;
+        outputFile.close();
+    }
+}
+
+void generateOutput() {
+    rand_gen.seed(seed_val);
+    stringstream ss;
+    //ofstream outputFile("OUTPUT.txt", ofstream::out);
+    cout << "Size\t0\t\t2\t\3\t4\n";
+    // loop through graph sizes
+    for (int i = 16; i <= 65536; i *= 2) {
+        //cout << "On graph size " << i << " for dimension " << endl;
+        cout << i << "\t";
+    // loop through dimensions
+        for (int d = 0; d < 5; d++) {
+            if (d == 1)
+                continue;
+            //cout << d << endl;
+            // loop through trials
+            double total = 0.0;
+            for (int t = 0; t < 5; t++) {
+                
+                auto G = generateGraph(i, d, 100);
+                auto MST = findMST(G);
+                total += MST.total_weight;
+                for (Edge* E : G.edges)
+                    free(E);
+                for (Vertex* V : G.vertices)
+                    free(V);
+                MST.total_weight = 0;
+            }
+            double avg_weight = total / 5;
+            cout << avg_weight << "\t";
+            
+        }
+        cout << "\n";
     }
 }
 
@@ -369,7 +406,9 @@ int main(int argc, char** argv){
     if (dimensions == 1) {
         return 1;
     }
-
+    
+    rand_gen.seed(seed_val);
+    
     if (flag == 1) {
         cout << "\nTesting\n";
         testHardcodedGraph();
@@ -380,7 +419,11 @@ int main(int argc, char** argv){
     }
 
     if (flag == 2) {
-        testMaxWeight(0, "5_500_500_trials_0D.txt", 100, 5, 1000);
+        testMaxWeight(2, "5_400_100_trials_2D.txt", 100, 5, 400);
+        return 0;
+    }
+    if (flag == 3) {
+        generateOutput();
         return 0;
     }
 
