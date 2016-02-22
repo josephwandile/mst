@@ -63,11 +63,11 @@ Vertex* initializeVertex(vector<double> coords = {0}) {
 }
 
 // Used in the 2D, 3D and 4D graphs
-Vertex* generateRandomVertex(int dimensions) {
+Vertex* generateRandomVertex(int dimension) {
 
-    vector<double> coords(dimensions);
+    vector<double> coords(dimension);
 
-    for (int i = 0; i < dimensions; i++) {
+    for (int i = 0; i < dimension; i++) {
         coords[i] = (generateRandomVal());
     }
 
@@ -96,11 +96,11 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
  See writeup for explanation of k(n) and error bounds. All residuals are based on the difference
  between approximated and observed data.
  */
-double assignResidual(bool use_larger_residual, double lower, double upper) {
+double assignResidual(bool use_larger_residual, double low_n_bound, double high_n_bound) {
     if (use_larger_residual) {
-        return upper;
+        return low_n_bound;
     }
-    return lower;
+    return high_n_bound;
 }
 
 double calculatePruningThreshold(long n, int dimension){
@@ -110,16 +110,16 @@ double calculatePruningThreshold(long n, int dimension){
     switch (dimension)
     {
         case 0:
-            return 4.1892 * pow((double) n, -0.837) + assignResidual(use_larger_residual, 0.05, 0.1);
+            return 4.1218 * pow((double) n, -0.833) + assignResidual(use_larger_residual, 0.06, 0.3);
 
         case 2:
-            return 2.1737 * pow((double) n, -0.474) + assignResidual(use_larger_residual, 0.05, 0.1);
+            return 2.0025 * pow((double) n, -0.459) + assignResidual(use_larger_residual, 0.08, 0.08);
 
         case 3:
-            return 1.6565 * pow((double) n, -0.306 ) + assignResidual(use_larger_residual, 0.05, 0.2);
+            return 1.6973 * pow((double) n, -0.312) + assignResidual(use_larger_residual, 0.2, 0.05);
 
         case 4:
-            return 1.141 * pow((double) n, -0.219) + assignResidual(use_larger_residual, 0.05, 0.15);
+            return 1.7323 * pow((double) n, -0.249) + assignResidual(use_larger_residual, 0.15, 0.065);
 
         default:
             return sqrt(dimension);
@@ -128,18 +128,18 @@ double calculatePruningThreshold(long n, int dimension){
 
 }
 
-Graph generateGraph(unsigned size, int dimensions, double weight_thresh) {
+Graph generateGraph(unsigned size, int dimension, double weight_thresh) {
 
     vector<Vertex*> vertices(size);
     vector<Edge*> edges;
 
-    bool in_euclidean_space = (dimensions != 0);
+    bool in_euclidean_space = (dimension != 0);
 
     if (in_euclidean_space) {
 
         // Graph is in 2D, 3D or 4D, and coordinates in space matter
         for (int i = 0; i < size; i++) {
-            vertices[i] = generateRandomVertex(dimensions);
+            vertices[i] = generateRandomVertex(dimension);
         }
 
     } else {
@@ -325,16 +325,16 @@ void testHardcodedGraph() {
 }
 
 // Determines edge weight within the optimal MST. Used to determine k(n) as well as the error-bound for k(n)
-void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
-    ofstream outputFile(outputLoc);
+void testMaxWeight(int dimension, string output_loc, int trials, int interval, int min_nodes, int max_nodes){
+    ofstream outputFile(output_loc);
 
-    for (int i = minNodes; i <= maxNodes; i += 5){
-        cout << "Doing " << numTrials << " trials for i = " << i << endl;
+    for (int i = min_nodes; i <= max_nodes; i += interval){
+        cout << "Doing " << trials << " trials for i = " << i << endl;
         double max = 0.0;
-        for(int j = 0; j < numTrials; j++){
+        for(int j = 0; j < trials; j++){
 
             // Absolutely ensures nothing is thrown out
-            auto G = generateGraph(i, dimensions, 100);
+            auto G = generateGraph(i, dimension, 100);
             auto MST = findMST(G);
             if(MST.path.back()->distance > max)
                 max = MST.path.back()->distance;
@@ -375,7 +375,7 @@ void testPruning(int dimension, unsigned n) {
         free(V);
 }
 
-void runCodeWithTiming(unsigned size, int trials, int dimensions) {
+void runCodeWithTiming(unsigned size, int trials, int dimension) {
 
     // Running code as CS 124 staff will with helpful output to console
     rand_gen.seed(seed_val);
@@ -386,7 +386,7 @@ void runCodeWithTiming(unsigned size, int trials, int dimensions) {
     for (int trial = 0; trial < trials; trial++) {
 
         clock_t gen_start_time = clock();
-        auto G = generateGraph(size, dimensions, calculatePruningThreshold(size, dimensions));
+        auto G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
         double gen_total_time = (clock() - gen_start_time) / (double)(CLOCKS_PER_SEC);
 
         cout << "Time for Graph Generation:    " << gen_total_time << "s" << endl;
@@ -482,8 +482,8 @@ int main(int argc, char** argv){
 
     if (flag == 2) {
 
-        // Used to figure out k(n) and residuals. Dimension, output file name, numtrials, interval size, largest n
-        testMaxWeight(4, "5_500_100_trials_4D.txt", 100, 5, 500);
+        // Used to figure out k(n) and residuals. Dimension, output file name, numtrials, interval size, smallest n, largest n
+        testMaxWeight(0, "0D.txt", 100, 5, 5, 400);
         return 0;
     }
 
@@ -501,5 +501,4 @@ int main(int argc, char** argv){
         testPruning(0, 4096);
 
     }
-
 }
