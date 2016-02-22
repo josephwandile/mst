@@ -18,15 +18,6 @@ const size_t pid_seed = hash<thread::id>()(this_thread::get_id());
 seed_seq seed_val { time_seed, clock_seed, pid_seed };
 mt19937_64 rand_gen;
 
-/*
- RANDOMIZATION
- */
-double generateRandomVal() {
-
-    // Random value between 0 and 1
-    return generate_canonical<double, 50>(rand_gen);
-}
-
 
 /*
  GRAPH GENERATION
@@ -52,6 +43,14 @@ typedef struct Graph {
     vector<Vertex*> vertices;
 } Graph;
 
+// Used to generate points in space or edge weights in the '0D' graph
+double generateRandomVal() {
+
+    // Random value between 0 and 1
+    return generate_canonical<double, 50>(rand_gen);
+}
+
+// Vertices == singleton sets in disjoint set data structure
 Vertex* initializeVertex(vector<double> coords = {0}) {
 
     // Initialize vertex, make self the parent, and set rank to one
@@ -63,11 +62,11 @@ Vertex* initializeVertex(vector<double> coords = {0}) {
     return vertex;
 }
 
+// Used in the 2D, 3D and 4D graphs
 Vertex* generateRandomVertex(int dimensions) {
 
     vector<double> coords(dimensions);
 
-    // Initialize coordinates to random vector in given number of dimensions
     for (int i = 0; i < dimensions; i++) {
         coords[i] = (generateRandomVal());
     }
@@ -77,6 +76,11 @@ Vertex* generateRandomVertex(int dimensions) {
     return vertex;
 }
 
+/*
+ The value of *d holds euclidean distance in the case in which we do not throw out the edge.
+ It allows us to stop evaluation of distance without evaluating every pair of coordinates if a
+ threshold is reached.
+ */
 bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
     double total = 0;
     for (int i = 0; i < (u->coords).size(); i++){
@@ -88,9 +92,10 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
     return true;
 }
 
-// TODO This will be a totally different function depending on dimensions. It's not just n that will change.
-// TODO Calculate Residuals correctly
-// See writeup for explanation of k(n) and error bound of 0.015
+/*
+ See writeup for explanation of k(n) and error bound of 0.02, which was determined to be
+ greater than all residuals found during the testing of k(n).
+ */
 double inline calculatePruningThreshold(long n, int dimension=3){
 
     switch (dimension)
@@ -305,10 +310,7 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
         }
         avg /= numTrials;
         outputFile << i << "\t" << avg << endl;
-
-
     }
-
 }
 
 /*
