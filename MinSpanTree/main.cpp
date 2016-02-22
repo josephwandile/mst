@@ -96,13 +96,6 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
  See writeup for explanation of k(n) and error bounds. All residuals are based on the difference
  between approximated and observed data.
  */
-double assignResidual(bool use_larger_residual, double low_n_bound, double high_n_bound) {
-    if (use_larger_residual) {
-        return low_n_bound;
-    }
-    return high_n_bound;
-}
-
 double calculatePruningThreshold(long n, int dimension){
 
     bool use_larger_residual = (n <= 1024);
