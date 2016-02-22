@@ -9,9 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
-#include "test.h"
 #include <String>
-
 
 using namespace std;
 const auto time_seed = static_cast<size_t>(time(0));
@@ -24,7 +22,8 @@ mt19937_64 rand_gen;
  RANDOMIZATION
  */
 double generateRandomVal() {
-    
+
+    // Random value between 0 and 1
     return generate_canonical<double, 50>(rand_gen);
 }
 
@@ -41,14 +40,14 @@ double inline threshold(long n){
  GRAPH GENERATION
  */
 typedef struct Vertex {
-    
+
     vector<double> coords;
     Vertex* parent;
     int rank;
 } Vertex;
 
 typedef struct Edge {
-    
+
     Vertex* u;
     Vertex* v;
     double distance;
@@ -62,27 +61,27 @@ typedef struct Graph {
 } Graph;
 
 Vertex* initializeVertex(vector<double> coords = {0}) {
-    
+
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
     vertex->parent = vertex; //
     vertex->rank = 1;
     vertex->coords = coords;
-    
+
     return vertex;
 }
 
 Vertex* generateRandomVertex(int dimensions) {
-    
+
     vector<double> coords(dimensions);
-    
+
     // Initialize coordinates to random vector in given number of dimensions
     for (int i = 0; i < dimensions; i++) {
         coords[i] = (generateRandomVal());
     }
-    
+
     Vertex* vertex = initializeVertex(coords);
-    
+
     return vertex;
 }
 
@@ -98,61 +97,60 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
 }
 
 Graph generateGraph(long size, int dimensions, double weightThresh) {
-    
+
     vector<Vertex*> vertices(size);
-    
-    // Best guess at num. edges after pruning for memory allocation. Can resize dynamically.
+
+    // TODO this doesn't make sense in euclidean space
     vector<Edge*> edges;
     long num_edges = weightThresh * (size * (size - 1) / 2);
     edges.reserve(num_edges);
-    
+
     bool in_euclidean_space = (dimensions == 0);
-    
+
     if (!in_euclidean_space) {
-        
+
         // Random weights -- coordinates in space meaningless
         for (int i = 0; i < size; i++) {
             vertices[i] = initializeVertex();
         }
     }
-    
+
     // Coordinates in space instrumental
     for (int i = 0; i < size; i++) {
         vertices[i] = generateRandomVertex(dimensions);
     }
-    
+
     //long edge_count = 0;
     for (int i = 0; i < size; i++) {
         for (int j = i + 1; j < size; j++) {
-            
+
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
-            
-            // get double pointer to hold total euclidean distance
+
+            // Get double pointer to hold total euclidean distance
             double *distance = new double();
+
             // Distance == Edge Weight
             if (in_euclidean_space)
                 *distance = generateRandomVal();
-            
-            // if euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
+
+            // If euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
             else
                 if(calcEuclideanDist(u, v, distance, weightThresh)){
                     Edge* new_edge = new Edge({u, v, *distance});
                     //edges[edge_count++] = new_edge;
                     edges.push_back(new_edge);
                 }
-            
-            // free the pointer
+
+            // Free the pointer
             free(distance);
         }
     }
-    
+
     // TODO Why are these cast to ints? Should they be longs? Obviously that would change the Graph struct
     return (Graph){(int) size, (int) num_edges, edges, vertices};
 }
 
-
-// Using a struct for comparison is optimized more at low level
 struct edgeCompare {
     bool operator() (Edge* e1, Edge* e2) {
         return (e1->distance < e2->distance);
@@ -175,7 +173,7 @@ void setUnion(Vertex* v, Vertex* u){
     if (v == u){
         return;
     }
-    
+
     if (v_root->rank < u_root->rank){
         v_root->parent = u_root;
     }
@@ -186,7 +184,7 @@ void setUnion(Vertex* v, Vertex* u){
         u_root->parent = v_root;
         v_root->rank++;
     }
-    
+
 }
 
 
@@ -194,7 +192,7 @@ void setUnion(Vertex* v, Vertex* u){
  KRUSKAL'S MST ALGORITHM
  */
 typedef struct MST {
-    
+
     vector<Edge*> path;
     double total_weight;
 } MST;
@@ -204,9 +202,9 @@ void inline sortGraphEdgeList(Graph& G){
 }
 
 MST findMST(Graph& G){
-    
+
     MST foundMST;
-    
+
     sortGraphEdgeList(G);
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
@@ -224,7 +222,7 @@ MST findMST(Graph& G){
  TESTING
  */
 void testHardcodedGraph() {
-    
+
     // Hardcoded vertices and edges
     Vertex* A = initializeVertex();
     Vertex* B = initializeVertex();
@@ -233,7 +231,7 @@ void testHardcodedGraph() {
     Vertex* E = initializeVertex();
     Vertex* F = initializeVertex();
     Vertex* G = initializeVertex();
-    
+
     Edge* AB = new Edge({A, B, 7.0});
     Edge* AD = new Edge({A, D, 5.0});
     Edge* BC = new Edge({B, C, 8.0});
@@ -245,38 +243,30 @@ void testHardcodedGraph() {
     Edge* EF = new Edge({E, F, 7.0});
     Edge* EG = new Edge({E, G, 9.0});
     Edge* FG = new Edge({F, G, 11.0});
-    
+
     // Hardcoded graph and true and false MSTs
     vector<Vertex*> vertices_list {A,B,C,D,E,F,G};
     vector<Edge*> edges_list {AB, AD, BC, BE, CE, EG, FG, DF, EF, DE, BD};
     Graph G_test {7, 11, edges_list, vertices_list};
     MST found_MST = findMST(G_test);
-    
+
     vector<Edge*> true_path {AD, CE, DF, AB, BE, EG};
     double true_weight = 39;
     MST true_MST {true_path, true_weight};
-    
+
     double false_weight = 40;
     vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
     MST false_MST {false_path, false_weight};
-    
+
     // Test
     assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
     assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
-    
+
     for (Edge* E : G_test.edges)
         free(E);
     for (Vertex* V : G_test.vertices)
         free(V);
-    
-}
 
-void testUtilityFunctions() {
-    /*
-     TODO Test things like euclidean distance. We know the MST search algo works. Just need to make
-     sure its dependencies work, too
-     */
-    
 }
 
 void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
@@ -288,7 +278,7 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
             auto G = generateGraph(i, dimensions, 1.0);
             auto MST = findMST(G);
             avg += MST.path.back()->distance;
-            
+
             // deallocate pointers
             for (Edge* E : G.edges)
                 free(E);
@@ -297,90 +287,90 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
         }
         avg /= numTrials;
         outputFile << i << "\t" << avg << endl;
-        
-        
+
+
     }
-    
+
 }
 
 /*
  COMMAND LINE INTERFACE
+
+ Note that exit code of 0 is a success; 1 is an input failure; 2 is some other failure.
  */
 int main(int argc, char** argv){
     // TODO add double threshold parameter
-    
+
     if (argc != 5) {
-        return 2;
+        return 1;
     }
-    
+
     vector<int> params;
-    
+
     for (int i = 1; i < argc; i++) {
-        
+
         istringstream char_param (argv[i]);
         int int_param;
-        
+
         if (char_param >> int_param) {
             params.push_back(int_param);
         } else {
-            return 2;
+            return 1;
         }
     }
-    
+
     int flag = params[0];
     long size = params[1];
     int trials = params[2];
     int dimensions = params[3];
-    
+
     if (dimensions == 1) {
-        return 2;
+        return 1;
     }
-    
-    // TODO Make tests cutomizable
+
     if (flag == 1) {
         cout << "\nTesting\n";
         testHardcodedGraph();
         cout << "\nMST Working on Hardcoded Graph\n";
         cout << "\nAll Tests Pass\n";
-        
+
         return 0;
     }
-    
+
     if (flag == 2) {
         testMaxWeight(3, "200_1000_50_trials.txt", 50, 200, 1000);
         return 0;
     }
-    
+
     double total_time = 0;
     double avg_time = 0;
-    
-    // TODO record and aggregate data !!
+
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions, threshold(size));
         
         clock_t    start;
         start = clock();
-        
+
         auto MST = findMST(G);
-        
+
         double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
-        
+
         cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
-        
+
         total_time += trial_time;
-        
+
         for (Edge* E : G.edges)
             free(E);
         for (Vertex* V : G.vertices)
             free(V);
 
     }
-    
+
     avg_time = total_time / trials;
-    
+
     cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
-    
-    
+
+
     return 0;
 }
