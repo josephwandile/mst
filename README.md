@@ -1,1 +1,1 @@
-# Generating complete random graphs in n-dimensional space and finding MST
+# Generating complete random graphs in n-dimensional space and finding MSTs
