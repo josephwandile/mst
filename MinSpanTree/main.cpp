@@ -122,7 +122,7 @@ double calculatePruningThreshold(long n, int dimension){
             return 1.141 * pow((double) n, -0.219) + assignResidual(use_larger_residual, 0.05, 0.15);
 
         default:
-            return 1;
+            return sqrt(dimension);
 
     }
 
@@ -275,6 +275,8 @@ MST findMST(Graph& G){
 /*
  TESTING
  */
+
+// Basis testing of Kruskal's implementation
 void testHardcodedGraph() {
 
     // Hardcoded vertices and edges
@@ -312,7 +314,6 @@ void testHardcodedGraph() {
     vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
     MST false_MST {false_path, false_weight};
 
-    // Test
     assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
     assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
 
@@ -323,18 +324,21 @@ void testHardcodedGraph() {
 
 }
 
+// Determines edge weight within the optimal MST. Used to determine k(n) as well as the error-bound for k(n)
 void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
     ofstream outputFile(outputLoc);
+
     for (int i = minNodes; i <= maxNodes; i += 5){
         cout << "Doing " << numTrials << " trials for i = " << i << endl;
         double max = 0.0;
         for(int j = 0; j < numTrials; j++){
-            auto G = generateGraph(i, dimensions, 1.0);
+
+            // Absolutely ensures nothing is thrown out
+            auto G = generateGraph(i, dimensions, 100);
             auto MST = findMST(G);
             if(MST.path.back()->distance > max)
                 max = MST.path.back()->distance;
 
-            // deallocate pointers
             for (Edge* E : G.edges)
                 free(E);
             for (Vertex* V : G.vertices)
@@ -344,13 +348,78 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
     }
 }
 
+// Ensures that total weight of the MST is similar when calculated with pruning and without pruning
+void testPruning(int dimension, unsigned n) {
+
+    rand_gen.seed(seed_val);
+
+    auto G_p = generateGraph(n, dimension, calculatePruningThreshold(n, dimension));
+    auto MST_p = findMST(G_p);
+
+    cout << "Dimension " << dimension << " with pruning" << endl << "Length: " << MST_p.path.size() << " Total weight: " << MST_p.total_weight << endl;
+
+    for (Edge* E : G_p.edges)
+        free(E);
+    for (Vertex* V : G_p.vertices)
+        free(V);
+
+    // 100 is an arbitrary upper bound
+    auto G = generateGraph(n, dimension, 100);
+    auto MST = findMST(G);
+
+    cout << "Dimension " << dimension << " without pruning" << endl << "Length: " << MST.path.size() << " Total weight: " << MST.total_weight << endl;
+
+    for (Edge* E : G.edges)
+        free(E);
+    for (Vertex* V : G.vertices)
+        free(V);
+}
+
+void runCodeWithTiming(unsigned size, int trials, int dimensions) {
+
+    // Running code as CS 124 staff will with helpful output to console
+    rand_gen.seed(seed_val);
+
+    double total_search_time = 0;
+    double avg_search_time = 0;
+
+    for (int trial = 0; trial < trials; trial++) {
+
+        clock_t gen_start_time = clock();
+        auto G = generateGraph(size, dimensions, calculatePruningThreshold(size, dimensions));
+        double gen_total_time = (clock() - gen_start_time) / (double)(CLOCKS_PER_SEC);
+
+        cout << "Time for Graph Generation:    " << gen_total_time << "s" << endl;
+
+        clock_t search_start_time = clock();
+        auto MST = findMST(G);
+        double search_total_time = (clock() - search_start_time) / (double)(CLOCKS_PER_SEC);
+
+        cout << "Time for Trial " << trial + 1 << ":    " << search_total_time << "s" << endl;
+
+        total_search_time += search_total_time;
+
+        cout << "Lengh of path found: " << MST.path.size() << endl << "Total weight: " << MST.total_weight << endl;
+
+        for (Edge* E : G.edges)
+            free(E);
+        for (Vertex* V : G.vertices)
+            free(V);
+    }
+
+    avg_search_time = total_search_time / trials;
+
+    cout << "Average search time over " << trials << " trials:    " << avg_search_time << "s" << endl;
+
+}
+
+
 /*
  COMMAND LINE INTERFACE
 
  Note that exit code of 0 is a success; 1 is an input failure; 2 is some other failure.
  */
 int main(int argc, char** argv){
-    // TODO add double threshold parameter
 
     if (argc != 5) {
         return 1;
@@ -373,59 +442,64 @@ int main(int argc, char** argv){
     int flag = params[0];
     unsigned size = params[1];
     int trials = params[2];
-    int dimensions = params[3];
+    int dimension = params[3];
 
-    if (dimensions == 1) {
+    if (dimension == 1) {
         return 1;
     }
 
-    if (flag == 1) {
-        cout << "\nTesting\n";
-        testHardcodedGraph();
-        cout << "\nMST Working on Hardcoded Graph\n";
-        cout << "\nAll Tests Pass\n";
+    if (flag == 0) {
 
+        // Output in the format requested in assignment
+        rand_gen.seed(seed_val);
+        double cumulative_weight = 0;
+
+        for (int i = 0; i < trials; i++) {
+
+            auto G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
+            auto MST = findMST(G);
+
+            cumulative_weight += MST.total_weight;
+
+            for (Edge* E : G.edges)
+                free(E);
+            for (Vertex* V : G.vertices)
+                free(V);
+
+        }
+
+        double avg_weight = cumulative_weight / trials;
+
+        cout << avg_weight << " " << size << " " << trials << " " << dimension << " " << endl;
+
+        return 0;
+    }
+
+    if (flag == 1) {
+        testHardcodedGraph();
         return 0;
     }
 
     if (flag == 2) {
+
+        // Used to figure out k(n) and residuals. Dimension, output file name, numtrials, interval size, largest n
         testMaxWeight(4, "5_500_100_trials_4D.txt", 100, 5, 500);
         return 0;
     }
 
-    double total_search_time = 0;
-    double avg_search_time = 0;
+    if (flag == 3) {
 
-    for (int trial = 0; trial < trials; trial++) {
+        // Uses same command line format as CS 124 tests
+        runCodeWithTiming(size, trials, dimension);
+        return 0;
 
-        rand_gen.seed(seed_val);
-
-        clock_t gen_start_time = clock();
-        auto G = generateGraph(size, dimensions, calculatePruningThreshold(size, dimensions));
-        double gen_total_time = (clock() - gen_start_time) / (double)(CLOCKS_PER_SEC);
-
-        cout << "Time for Graph Generation:    " << gen_total_time << "s" << endl;
-
-        clock_t search_start_time = clock();
-        auto MST = findMST(G);
-        double search_total_time = (clock() - search_start_time) / (double)(CLOCKS_PER_SEC);
-
-        cout << "Time for Trial " << trial + 1 << ":    " << search_total_time << "s" << endl;
-
-        total_search_time += search_total_time;
-
-        cout << "Lengh of path found: " << MST.path.size() << endl << "Total weight: " << MST.total_weight << endl;
-
-
-        for (Edge* E : G.edges)
-            free(E);
-        for (Vertex* V : G.vertices)
-            free(V);
     }
 
-    avg_search_time = total_search_time / trials;
+    if (flag == 4) {
 
-    cout << "Average search time over " << trials << " trials:    " << avg_search_time << "s" << endl;
+        // First param is the dimension; second is the graph size
+        testPruning(0, 4096);
 
-    return 0;
+    }
+
 }
