@@ -110,16 +110,16 @@ double calculatePruningThreshold(long n, int dimension){
     switch (dimension)
     {
         case 0:
-            return 4.1218 * pow((double) n, -0.833) + use_larger_residual ? 0.06 : 0.03;
+            return 4.1218 * pow((double) n, -0.833) + (use_larger_residual ? 0.06 : 0.03);
 
         case 2:
             return 2.0025 * pow((double) n, -0.459) + 0.1;
 
         case 3:
-            return 1.6973 * pow((double) n, -0.312) + use_larger_residual ? 0.2 : 0.05;
+            return 1.6973 * pow((double) n, -0.312) + (use_larger_residual ? 0.2 : 0.05);
 
         case 4:
-            return 1.7323 * pow((double) n, -0.249) + use_larger_residual ? 0.15 : 0.065;
+            return 1.7323 * pow((double) n, -0.249) + (use_larger_residual ? 0.15 : 0.065);
 
         default:
             return sqrt(dimension);
