@@ -81,15 +81,15 @@ Vertex* generateRandomVertex(int dimension) {
  It allows us to stop evaluation of distance without evaluating every pair of coordinates if a
  threshold is reached.
  */
-bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
+double calcEuclideanDist(Vertex* u, Vertex* v, int dimension, double threshold) {
     double total = 0;
-    for (int i = 0; i < (u->coords).size(); i++){
-        total += pow((u->coords[i] - v->coords[i]),2);
+    for (int i = 0; i < dimension; i++) {
+
+        total += (u->coords[i] - v->coords[i]) * (u->coords[i] - v->coords[i]);
         if (total > (threshold * threshold))
-            return false;
+            return -1;
     }
-    *d = sqrt(total);
-    return true;
+    return sqrt(total);
 }
 
 /*
@@ -157,41 +157,36 @@ Graph generateGraph(unsigned size, int dimension, double weight_thresh) {
 
     for (int i = 0; i < size; i++) {
 
+
         for (int j = i + 1; j < size; j++) {
 
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
 
-            // Get double pointer to hold total euclidean distance
-            double* distance = new double();
-
             // Distance == Edge Weight
             if (in_euclidean_space) {
 
-                // Dealing with a 2D, 3D or 4D graph. Must calculate distance and prune appropriately.
-                if(calcEuclideanDist(u, v, distance, weight_thresh)){
+                double distance = calcEuclideanDist(u, v, dimension, weight_thresh);
 
-                    /*
-                     If euclidean distance is under threshold, then *distance is that value.
-                     Otherwise, calcEuclideanDist returns false
-                     */
-                    Edge* new_edge = new Edge({u, v, *distance});
+                // Dealing with a 2D, 3D or 4D graph. Must calculate distance and prune appropriately.
+                if(distance > 0){
+
+                    Edge* new_edge = new Edge({u, v, distance});
                     edges.push_back(new_edge);
                 }
 
             } else {
 
                 // All distances between 0 and 1. Coordinates in space wouldn't make sense here.
-                *distance = generateRandomVal();
+                double distance = generateRandomVal();
 
                 // Throw out edges which are beyond the threshold
-                if (*distance < weight_thresh) {
-                    Edge* new_edge = new Edge({u, v, *distance});
+                if (distance < weight_thresh) {
+                    Edge* new_edge = new Edge({u, v, distance});
                     edges.push_back(new_edge);
                 }
             }
 
-            free(distance);
         }
     }
 
@@ -315,6 +310,21 @@ void testHardcodedGraph() {
     for (Vertex* V : G_test.vertices)
         free(V);
 
+}
+
+void testCalcEuclideanDist() {
+
+    vector<double> A_coords {0.03189, 0.124, 0.932, 0.128};
+    vector<double> B_coords {0.652, 0.01, 0.87, 0.5034};
+    double hard_coded_dist = 0.736411;
+
+    Vertex* A = initializeVertex(A_coords);
+    Vertex* B = initializeVertex(B_coords);
+
+    double calculated_dist = calcEuclideanDist(A, B, 4, sqrt(4));
+
+    assert(abs(calculated_dist - hard_coded_dist) < 0.0001);
+    assert(calcEuclideanDist(A, B, 4, 0) == -1);
 }
 
 // Determines edge weight within the optimal MST. Used to determine k(n) as well as the error-bound for k(n)
@@ -505,6 +515,7 @@ int main(int argc, char** argv){
 
     if (flag == 1) {
         testHardcodedGraph();
+        testCalcEuclideanDist();
         return 0;
     }
 
