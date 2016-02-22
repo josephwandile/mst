@@ -18,7 +18,6 @@ const size_t pid_seed = hash<thread::id>()(this_thread::get_id());
 seed_seq seed_val { time_seed, clock_seed, pid_seed };
 mt19937_64 rand_gen;
 
-
 /*
  GRAPH GENERATION
  */
@@ -37,8 +36,8 @@ typedef struct Edge {
 } Edge;
 
 typedef struct Graph {
-    int V;
-    int E;
+    unsigned V;
+    unsigned E;
     vector<Edge*> edges;
     vector<Vertex*> vertices;
 } Graph;
@@ -119,66 +118,82 @@ double inline calculatePruningThreshold(long n, int dimension=3){
 
 }
 
-Graph generateGraph(long size, int dimensions, double weightThresh) {
+Graph generateGraph(unsigned size, int dimensions, double weight_thresh) {
 
     vector<Vertex*> vertices(size);
-
-    // TODO this doesn't make sense in euclidean space
     vector<Edge*> edges;
-    long num_edges = weightThresh * (size * (size - 1) / 2);
-    edges.reserve(num_edges);
 
-    bool in_euclidean_space = (dimensions == 0);
+    bool in_euclidean_space = (dimensions != 0);
 
-    if (!in_euclidean_space) {
+    if (in_euclidean_space) {
 
-        // Random weights -- coordinates in space meaningless
+        // Graph is in 2D, 3D or 4D, and coordinates in space matter
         for (int i = 0; i < size; i++) {
+            vertices[i] = generateRandomVertex(dimensions);
+        }
+
+    } else {
+
+        /*
+         Random egde weights: '0D' Case. Explicit vertices not needed. However, semantically
+         it makes sense to have vertices regardless (it is a graph, after all). (Plus, we use vertices
+         as singletons in the disjoint sets data structure for Kruskal's.)
+         */
+        for (int i = 0; i < size; i++) {
+
+            // Vertices with arbitrary coordinates
             vertices[i] = initializeVertex();
         }
     }
 
-    // Coordinates in space instrumental
-    for (int i = 0; i < size; i++) {
-        vertices[i] = generateRandomVertex(dimensions);
-    }
+    /*
+     *
+     * Vertices have been instantiated. Now for generating edge weights and pruning.
+     *
+     */
 
-    //long edge_count = 0;
     for (int i = 0; i < size; i++) {
+
         for (int j = i + 1; j < size; j++) {
 
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
 
             // Get double pointer to hold total euclidean distance
-            double *distance = new double();
+            double* distance = new double();
 
             // Distance == Edge Weight
-            if (in_euclidean_space)
-                *distance = generateRandomVal();
+            if (in_euclidean_space) {
 
-            // If euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
-            else
-                if(calcEuclideanDist(u, v, distance, weightThresh)){
+                // Dealing with a 2D, 3D or 4D graph. Must calculate distance and prune appropriately.
+                if(calcEuclideanDist(u, v, distance, weight_thresh)){
+
+                    /*
+                     If euclidean distance is under threshold, then *distance is that value.
+                     Otherwise, calcEuclideanDist returns false
+                     */
                     Edge* new_edge = new Edge({u, v, *distance});
-                    //edges[edge_count++] = new_edge;
                     edges.push_back(new_edge);
                 }
 
-            // Free the pointer
+            } else {
+
+                // All distances between 0 and 1. Coordinates in space wouldn't make sense here.
+                *distance = generateRandomVal();
+
+                // Throw out edges which are beyond the threshold
+                if (*distance < weight_thresh) {
+                    Edge* new_edge = new Edge({u, v, *distance});
+                    edges.push_back(new_edge);
+                }
+            }
+
             free(distance);
         }
     }
 
-    // TODO Why are these cast to ints? Should they be longs? Obviously that would change the Graph struct
-    return (Graph){(int) size, (int) num_edges, edges, vertices};
+    return (Graph){(unsigned) size, (unsigned) edges.size(), edges, vertices};
 }
-
-struct edgeCompare {
-    bool operator() (Edge* e1, Edge* e2) {
-        return (e1->distance < e2->distance);
-    }
-} edgeCompare;
 
 
 /*
@@ -219,6 +234,12 @@ typedef struct MST {
     vector<Edge*> path;
     double total_weight;
 } MST;
+
+struct edgeCompare {
+    bool operator() (Edge* e1, Edge* e2) {
+        return (e1->distance < e2->distance);
+    }
+} edgeCompare;
 
 void inline sortGraphEdgeList(Graph& G){
     sort(G.edges.begin(), G.edges.end(), edgeCompare);
@@ -340,7 +361,7 @@ int main(int argc, char** argv){
     }
 
     int flag = params[0];
-    long size = params[1];
+    unsigned size = params[1];
     int trials = params[2];
     int dimensions = params[3];
 
