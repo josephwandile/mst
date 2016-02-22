@@ -101,16 +101,16 @@ double inline calculatePruningThreshold(long n, int dimension=3){
     switch (dimension)
     {
         case 0:
-            return 1.1473 * pow((double) n, 0.296) + 0.015;
+            return 1.1473 * pow((double) n, 0.296) + 0.02;
 
         case 2:
-            return 1.1473 * pow((double) n, 0.296) + 0.015;
+            return 2.1737 * pow((double) n, -0.474) + 0.02;
 
         case 3:
-            return 1.1473 * pow((double) n, 0.296) + 0.015;
+            return 1.6565 * pow((double) n, -0.306 ) + 0.02;
 
         case 4:
-            return 1.1473 * pow((double) n, 0.296) + 0.015;
+            return 1.141 * pow((double) n, -0.219) + 0.02;
 
         default:
             return 1;
@@ -294,13 +294,14 @@ void testHardcodedGraph() {
 
 void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
     ofstream outputFile(outputLoc);
-    for (int i = minNodes; i <= maxNodes; i++){
+    for (int i = minNodes; i <= maxNodes; i += 5){
         cout << "Doing " << numTrials << " trials for i = " << i << endl;
-        double avg = 0.0;
+        double max = 0.0;
         for(int j = 0; j < numTrials; j++){
             auto G = generateGraph(i, dimensions, 1.0);
             auto MST = findMST(G);
-            avg += MST.path.back()->distance;
+            if(MST.path.back()->distance > max)
+                max = MST.path.back()->distance;
 
             // deallocate pointers
             for (Edge* E : G.edges)
@@ -308,8 +309,7 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
             for (Vertex* V : G.vertices)
                 free(V);
         }
-        avg /= numTrials;
-        outputFile << i << "\t" << avg << endl;
+        outputFile << i << "\t" << max << endl;
     }
 }
 
@@ -358,7 +358,7 @@ int main(int argc, char** argv){
     }
 
     if (flag == 2) {
-        testMaxWeight(2, "5_500_500_trials_2D.txt", 100, 5, 500);
+        testMaxWeight(0, "5_500_500_trials_0D.txt", 100, 5, 1000);
         return 0;
     }
 
