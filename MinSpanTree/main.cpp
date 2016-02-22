@@ -357,7 +357,7 @@ void generateOutput() {
     for (int i = 16; i <= 65536; i *= 2) {
         //cout << "On graph size " << i << " for dimension " << endl;
         cout << i << "\t";
-    // loop through dimensions
+        // loop through dimensions
         for (int d = 0; d < 5; d++) {
             if (d == 1)
                 continue;
@@ -535,7 +535,7 @@ int main(int argc, char** argv){
     if (flag == 4) {
 
         // First param is the dimension; second is the graph size
-        testPruning(0, 4096);
+        testPruning(4, 8000);
     }
 
     if (flag == 5) {
