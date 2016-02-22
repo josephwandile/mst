@@ -93,24 +93,33 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
 }
 
 /*
- See writeup for explanation of k(n) and error bound of 0.02, which was determined to be
- greater than all residuals found during the testing of k(n).
+ See writeup for explanation of k(n) and error bounds. All residuals are based on the difference
+ between approximated and observed data.
  */
-double inline calculatePruningThreshold(long n, int dimension=3){
+double assignResidual(bool use_larger_residual, double lower, double upper) {
+    if (use_larger_residual) {
+        return upper;
+    }
+    return lower;
+}
+
+double calculatePruningThreshold(long n, int dimension){
+
+    bool use_larger_residual = (n <= 1024);
 
     switch (dimension)
     {
         case 0:
-            return 1.1473 * pow((double) n, 0.296) + 0.02;
+            return 4.1892 * pow((double) n, -0.837) + assignResidual(use_larger_residual, 0.05, 0.1);
 
         case 2:
-            return 2.1737 * pow((double) n, -0.474) + 0.02;
+            return 2.1737 * pow((double) n, -0.474) + assignResidual(use_larger_residual, 0.05, 0.1);
 
         case 3:
-            return 1.6565 * pow((double) n, -0.306 ) + 0.02;
+            return 1.6565 * pow((double) n, -0.306 ) + assignResidual(use_larger_residual, 0.05, 0.2);
 
         case 4:
-            return 1.141 * pow((double) n, -0.219) + 0.02;
+            return 1.141 * pow((double) n, -0.219) + assignResidual(use_larger_residual, 0.05, 0.15);
 
         default:
             return 1;
@@ -242,7 +251,7 @@ struct edgeCompare {
     }
 } edgeCompare;
 
-void inline sortGraphEdgeList(Graph& G){
+void sortGraphEdgeList(Graph& G){
     sort(G.edges.begin(), G.edges.end(), edgeCompare);
 }
 
@@ -380,7 +389,7 @@ int main(int argc, char** argv){
     }
 
     if (flag == 2) {
-        testMaxWeight(0, "5_500_500_trials_0D.txt", 100, 5, 1000);
+        testMaxWeight(4, "5_500_100_trials_4D.txt", 100, 5, 500);
         return 0;
     }
 
@@ -404,6 +413,9 @@ int main(int argc, char** argv){
         cout << "Time for Trial " << trial + 1 << ":    " << search_total_time << "s" << endl;
 
         total_search_time += search_total_time;
+
+        cout << "Lengh of path found: " << MST.path.size() << endl << "Total weight: " << MST.total_weight << endl;
+
 
         for (Edge* E : G.edges)
             free(E);
