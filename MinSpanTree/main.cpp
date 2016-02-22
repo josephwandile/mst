@@ -23,6 +23,7 @@ mt19937_64 rand_gen;
  */
 double generateRandomVal() {
 
+    // Random value between 0 and 1
     return generate_canonical<double, 50>(rand_gen);
 }
 
@@ -91,7 +92,7 @@ Graph generateGraph(long size, int dimensions, double weightThresh) {
 
     vector<Vertex*> vertices(size);
 
-    // Best guess at num. edges after pruning for memory allocation. Can resize dynamically.
+    // TODO this doesn't make sense in euclidean space
     vector<Edge*> edges;
     long num_edges = weightThresh * (size * (size - 1) / 2);
     edges.reserve(num_edges);
@@ -118,13 +119,14 @@ Graph generateGraph(long size, int dimensions, double weightThresh) {
             Vertex* u = vertices[i];
             Vertex* v = vertices[j];
 
-            // get double pointer to hold total euclidean distance
+            // Get double pointer to hold total euclidean distance
             double *distance = new double();
+
             // Distance == Edge Weight
             if (in_euclidean_space)
                 *distance = generateRandomVal();
 
-            // if euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
+            // If euclidean distance is under threshold, then *distance is that value. Otherwise, don't add edge.
             else
                 if(calcEuclideanDist(u, v, distance, weightThresh)){
                     Edge* new_edge = new Edge({u, v, *distance});
@@ -132,7 +134,7 @@ Graph generateGraph(long size, int dimensions, double weightThresh) {
                     edges.push_back(new_edge);
                 }
 
-            // free the pointer
+            // Free the pointer
             free(distance);
         }
     }
@@ -141,8 +143,6 @@ Graph generateGraph(long size, int dimensions, double weightThresh) {
     return (Graph){(int) size, (int) num_edges, edges, vertices};
 }
 
-
-// Using a struct for comparison is optimized more at low level
 struct edgeCompare {
     bool operator() (Edge* e1, Edge* e2) {
         return (e1->distance < e2->distance);
@@ -260,14 +260,6 @@ void testHardcodedGraph() {
 
 }
 
-void testUtilityFunctions() {
-    /*
-     TODO Test things like euclidean distance. We know the MST search algo works. Just need to make
-     sure its dependencies work, too
-     */
-
-}
-
 void testMaxWeight(int dimensions, string outputLoc, int numTrials, int maxNodes){
     ofstream outputFile(outputLoc);
     for (int i = 5; i <= maxNodes; i++){
@@ -344,7 +336,6 @@ int main(int argc, char** argv){
     double total_time = 0;
     double avg_time = 0;
 
-    // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
         auto G = generateGraph(size, dimensions, .1815);
