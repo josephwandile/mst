@@ -251,6 +251,12 @@ void testHardcodedGraph() {
     // Test
     assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
     assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
+    
+    for (Edge* E : G_test.edges)
+        free(E);
+    for (Vertex* V : G_test.vertices)
+        free(V);
+    
 }
 
 void testUtilityFunctions() {
@@ -270,9 +276,17 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int maxNodes
             auto G = generateGraph(i, dimensions, 1.0);
             auto MST = findMST(G);
             avg += MST.path.back()->distance;
+            
+            // deallocate pointers
+            for (Edge* E : G.edges)
+                free(E);
+            for (Vertex* V : G.vertices)
+                free(V);
         }
-        avg /= 5.0;
+        avg /= numTrials;
         outputFile << i << "\t" << avg << endl;
+        
+        
     }
     
 }
@@ -321,7 +335,7 @@ int main(int argc, char** argv){
     }
     
     if (flag == 2) {
-        testMaxWeight(3, "SmallNMany50Trials.txt", 100, 200);
+        testMaxWeight(3, "SmallNMany50Trials.txt", 500, 200);
         return 0;
     }
 
@@ -344,6 +358,10 @@ int main(int argc, char** argv){
 
         total_time += trial_time;
         
+        for (Edge* E : G.edges)
+            free(E);
+        for (Vertex* V : G.vertices)
+            free(V);
 
     }
     
