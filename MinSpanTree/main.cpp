@@ -350,7 +350,6 @@ void testMaxWeight(int dimension, string output_loc, int trials, int interval, i
 }
 
 void generateOutput() {
-    rand_gen.seed(seed_val);
     //ofstream outputFile("OUTPUT.txt", ofstream::out);
     cout << "Size\t0\t\t2\t\3\t4\n";
     // loop through graph sizes
@@ -389,7 +388,6 @@ void generateOutput() {
 // Ensures that total weight of the MST is similar when calculated with pruning and without pruning
 void testPruning(int dimension, unsigned n) {
 
-    rand_gen.seed(seed_val);
 
     auto G_p = generateGraph(n, dimension, calculatePruningThreshold(n, dimension));
     auto MST_p = findMST(G_p);
@@ -416,7 +414,6 @@ void testPruning(int dimension, unsigned n) {
 void runCodeWithTiming(unsigned size, int trials, int dimension) {
 
     // Running code as CS 124 staff will with helpful output to console
-    rand_gen.seed(seed_val);
 
     double total_search_time = 0;
     double avg_search_time = 0;
@@ -521,6 +518,7 @@ int main(int argc, char** argv){
     if (flag == 2) {
 
         // Used to figure out k(n) and residuals. Dimension, output file name, numtrials, interval size, smallest n, largest n
+        rand_gen.seed(seed_val);
         testMaxWeight(0, "0D.txt", 100, 5, 5, 400);
         return 0;
     }
@@ -528,6 +526,7 @@ int main(int argc, char** argv){
     if (flag == 3) {
 
         // Uses same command line format as CS 124 tests
+        rand_gen.seed(seed_val);
         runCodeWithTiming(size, trials, dimension);
         return 0;
     }
@@ -535,12 +534,14 @@ int main(int argc, char** argv){
     if (flag == 4) {
 
         // First param is the dimension; second is the graph size
+        rand_gen.seed(seed_val);
         testPruning(4, 8000);
     }
 
     if (flag == 5) {
 
         // Populate table in writeup
+        rand_gen.seed(seed_val);
         generateOutput();
         return 0;
     }
