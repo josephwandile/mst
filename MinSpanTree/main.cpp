@@ -2,22 +2,14 @@
 #include <set>
 #include <vector>
 #include <ctime>
-#include <random>
 #include <cmath>
-#include <thread>
 #include <cassert>
 #include <fstream>
 #include <sstream>
 #include <ctime>
 #include <String>
-#include <boost/random.hpp>
 
 using namespace std;
-const auto time_seed = static_cast<size_t>(time(0));
-const auto clock_seed = static_cast<size_t>(clock());
-const size_t pid_seed = hash<thread::id>()(this_thread::get_id());
-seed_seq seed_val { time_seed, clock_seed, pid_seed };
-mt19937_64 rand_gen;
 
 
 /*
@@ -52,7 +44,7 @@ double generateRandomVal() {
 }
 
 // Vertices == singleton sets in disjoint set data structure
-Vertex* initializeVertex(vector<double> coords = {0}) {
+Vertex* initializeVertex(vector<double> coords) {
 
     // Initialize vertex, make self the parent, and set rank to one
     Vertex* vertex = new Vertex();
@@ -146,14 +138,15 @@ Graph generateGraph(unsigned size, int dimension, double weight_thresh) {
     } else {
 
         /*
-         Random egde weights: '0D' Case. Explicit vertices not needed. However, semantically
+         Random edge weights: '0D' Case. Explicit vertices not needed. However, semantically
          it makes sense to have vertices regardless (it is a graph, after all). (Plus, we use vertices
          as singletons in the disjoint sets data structure for Kruskal's.)
          */
         for (int i = 0; i < size; i++) {
 
-            // Vertices with arbitrary coordinates
-            vertices[i] = initializeVertex();
+            // Vertices with arbitrary coordinates- assign to dummy value
+            vector<double> dummy;
+            vertices[i] = initializeVertex(dummy);
         }
     }
 
@@ -183,7 +176,10 @@ Graph generateGraph(unsigned size, int dimension, double weight_thresh) {
                      If euclidean distance is under threshold, then *distance is that value.
                      Otherwise, calcEuclideanDist returns false
                      */
-                    Edge* new_edge = new Edge({u, v, *distance});
+                    Edge* new_edge = new Edge();
+                    new_edge->u = u;
+                    new_edge->v = v;
+                    new_edge->distance = *distance;
                     edges.push_back(new_edge);
                 }
 
@@ -194,7 +190,10 @@ Graph generateGraph(unsigned size, int dimension, double weight_thresh) {
 
                 // Throw out edges which are beyond the threshold
                 if (*distance < weight_thresh) {
-                    Edge* new_edge = new Edge({u, v, *distance});
+                    Edge* new_edge = new Edge();
+                    new_edge->u = u;
+                    new_edge->v = v;
+                    new_edge->distance = *distance;
                     edges.push_back(new_edge);
                 }
             }
@@ -261,12 +260,11 @@ MST findMST(Graph& G){
     MST foundMST;
 
     sortGraphEdgeList(G);
-    for(Edge* E : G.edges){
-        if (find(E->u) != find(E->v)){
-            foundMST.path.push_back(E);
-            //cout << "Added edge number " << foundMST.path.size() << "." << endl;
-            foundMST.total_weight += E->distance;
-            setUnion(E->u, E->v);
+    for (int i = 0; i < G.edges.size(); i++) {
+        if (find(G.edges[i]->u) != find(G.edges[i]->v)){
+            foundMST.path.push_back(G.edges[i]);
+            foundMST.total_weight += G.edges[i]->distance;
+            setUnion(G.edges[i]->u, G.edges[i]->v);
         }
     }
     return foundMST;
@@ -279,6 +277,7 @@ MST findMST(Graph& G){
 
 // Basic testing of Kruskal's implementation
 void testHardcodedGraph() {
+    /*
 
     // Hardcoded vertices and edges
     Vertex* A = initializeVertex();
@@ -307,9 +306,9 @@ void testHardcodedGraph() {
     Graph G_test {7, 11, edges_list, vertices_list};
     MST found_MST = findMST(G_test);
 
-    vector<Edge*> true_path {AD, CE, DF, AB, BE, EG};
+    vector<Edge*> true_path = {AD, CE, DF, AB, BE, EG};
     double true_weight = 39;
-    MST true_MST {true_path, true_weight};
+    MST true_MST = (MST) {true_path, true_weight};
 
     vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
     double false_weight = 40;
@@ -318,16 +317,18 @@ void testHardcodedGraph() {
     assert(found_MST.path == true_MST.path);
     assert(found_MST.path != false_MST.path);
 
-    for (Edge* E : G_test.edges)
-        free(E);
-    for (Vertex* V : G_test.vertices)
-        free(V);
+     for (int i = 0; i < G.edges.size(); i++)
+        free(G.edges[i]);
+     for (int i = 0; i < G.vertices.size(); i++)
+        free(G.vertices[i]);
+     
+     */
 
 }
 
 // Determines edge weight within the optimal MST. Used to determine k(n) as well as the error-bound for k(n)
 void testMaxWeight(int dimension, string output_loc, int trials, int interval, int min_nodes, int max_nodes){
-    ofstream outputFile(output_loc);
+    ofstream outputFile(output_loc.c_str());
 
     for (int i = min_nodes; i <= max_nodes; i += interval){
         cout << "Doing " << trials << " trials for i = " << i << endl;
@@ -335,15 +336,15 @@ void testMaxWeight(int dimension, string output_loc, int trials, int interval, i
         for(int j = 0; j < trials; j++){
 
             // Absolutely ensures nothing is thrown out
-            auto G = generateGraph(i, dimension, 100);
-            auto MST = findMST(G);
+            Graph G = generateGraph(i, dimension, 100);
+            MST MST = findMST(G);
             if(MST.path.back()->distance > max)
                 max = MST.path.back()->distance;
 
-            for (Edge* E : G.edges)
-                free(E);
-            for (Vertex* V : G.vertices)
-                free(V);
+            for (int i = 0; i < G.edges.size(); i++)
+                free(G.edges[i]);
+            for (int i = 0; i < G.vertices.size(); i++)
+                free(G.vertices[i]);
         }
         outputFile << i << "\t" << max << endl;
         outputFile.close();
@@ -352,9 +353,9 @@ void testMaxWeight(int dimension, string output_loc, int trials, int interval, i
 
 void generateOutput() {
     //ofstream outputFile("OUTPUT.txt", ofstream::out);
-    cout << "Size\t0\t\t2\t\3\t4\n";
+    cout << "Size\t0D\t2D\t3D\t4D\n";
     // loop through graph sizes
-    for (int i = 131072; true; i *= 2) {
+    for (int i = 2; 65536; i *= 2) {
         //cout << "On graph size " << i << " for dimension " << endl;
         cout << i << "\t";
         // loop through dimensions
@@ -366,14 +367,14 @@ void generateOutput() {
             double total = 0.0;
             for (int t = 0; t < 5; t++) {
 
-                auto G = generateGraph(i, d, calculatePruningThreshold(i,d));
+                Graph G = generateGraph(i, d, calculatePruningThreshold(i,d));
 
-                auto MST = findMST(G);
+                MST MST = findMST(G);
                 total += MST.total_weight;
-                for (Edge* E : G.edges)
-                    free(E);
-                for (Vertex* V : G.vertices)
-                    free(V);
+                for (int i = 0; i < G.edges.size(); i++)
+                    free(G.edges[i]);
+                for (int i = 0; i < G.vertices.size(); i++)
+                    free(G.vertices[i]);
                 MST.total_weight = 0;
                 MST.path.clear();
             }
@@ -390,26 +391,26 @@ void generateOutput() {
 void testPruning(int dimension, unsigned n) {
 
 
-    auto G_p = generateGraph(n, dimension, calculatePruningThreshold(n, dimension));
-    auto MST_p = findMST(G_p);
+    Graph G_p = generateGraph(n, dimension, calculatePruningThreshold(n, dimension));
+    MST MST_p = findMST(G_p);
 
     cout << "Dimension " << dimension << " with pruning" << endl << "Length: " << MST_p.path.size() << " Total weight: " << MST_p.total_weight << endl;
 
-    for (Edge* E : G_p.edges)
-        free(E);
-    for (Vertex* V : G_p.vertices)
-        free(V);
+    for (int i = 0; i < G_p.edges.size(); i++)
+        free(G_p.edges[i]);
+    for (int i = 0; i < G_p.vertices.size(); i++)
+        free(G_p.vertices[i]);
 
     // 100 is an arbitrary upper bound
-    auto G = generateGraph(n, dimension, 100);
-    auto MST = findMST(G);
+    Graph G = generateGraph(n, dimension, 100);
+    MST MST = findMST(G);
 
     cout << "Dimension " << dimension << " without pruning" << endl << "Length: " << MST.path.size() << " Total weight: " << MST.total_weight << endl;
 
-    for (Edge* E : G.edges)
-        free(E);
-    for (Vertex* V : G.vertices)
-        free(V);
+    for (int i = 0; i < G.edges.size(); i++)
+        free(G.edges[i]);
+    for (int i = 0; i < G.vertices.size(); i++)
+        free(G.vertices[i]);
 }
 
 void runCodeWithTiming(unsigned size, int trials, int dimension) {
@@ -422,13 +423,13 @@ void runCodeWithTiming(unsigned size, int trials, int dimension) {
     for (int trial = 0; trial < trials; trial++) {
 
         clock_t gen_start_time = clock();
-        auto G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
+        Graph G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
         double gen_total_time = (clock() - gen_start_time) / (double)(CLOCKS_PER_SEC);
 
         cout << "Time for Graph Generation:    " << gen_total_time << "s" << endl;
 
         clock_t search_start_time = clock();
-        auto MST = findMST(G);
+        MST MST = findMST(G);
         double search_total_time = (clock() - search_start_time) / (double)(CLOCKS_PER_SEC);
 
         cout << "Time for Trial " << trial + 1 << ":    " << search_total_time << "s" << endl;
@@ -437,10 +438,10 @@ void runCodeWithTiming(unsigned size, int trials, int dimension) {
 
         cout << "Lengh of path found: " << MST.path.size() << endl << "Total weight: " << MST.total_weight << endl;
 
-        for (Edge* E : G.edges)
-            free(E);
-        for (Vertex* V : G.vertices)
-            free(V);
+        for (int i = 0; i < G.edges.size(); i++)
+            free(G.edges[i]);
+        for (int i = 0; i < G.vertices.size(); i++)
+            free(G.vertices[i]);
     }
 
     avg_search_time = total_search_time / trials;
@@ -476,31 +477,40 @@ int main(int argc, char** argv){
     }
 
     int flag = params[0];
+    
+    if (params[1] < 0) {
+        return 1;
+    }
     unsigned size = params[1];
+    
     int trials = params[2];
     int dimension = params[3];
 
     if (dimension == 1) {
         return 1;
     }
+    
+    
+    srand (static_cast <unsigned> (time(0)));
 
     if (flag == 0) {
 
         // TODO Output in the format requested in assignment
-        rand_gen.seed(seed_val);
         double cumulative_weight = 0;
 
         for (int i = 0; i < trials; i++) {
 
-            auto G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
-            auto MST = findMST(G);
+            Graph G = generateGraph(size, dimension, calculatePruningThreshold(size, dimension));
+            MST MST = findMST(G);
 
             cumulative_weight += MST.total_weight;
 
-            for (Edge* E : G.edges)
-                free(E);
-            for (Vertex* V : G.vertices)
-                free(V);
+            for (int i = 0; i < G.edges.size(); i++)
+                free(G.edges[i]);
+            for (int i = 0; i < G.vertices.size(); i++)
+                free(G.vertices[i]);
+            MST.total_weight = 0;
+            MST.path.clear();
 
         }
 
@@ -519,7 +529,6 @@ int main(int argc, char** argv){
     if (flag == 2) {
 
         // Used to figure out k(n) and residuals. Dimension, output file name, numtrials, interval size, smallest n, largest n
-        rand_gen.seed(seed_val);
         testMaxWeight(0, "0D.txt", 100, 5, 5, 400);
         return 0;
     }
@@ -527,7 +536,6 @@ int main(int argc, char** argv){
     if (flag == 3) {
 
         // Uses same command line format as CS 124 tests
-        rand_gen.seed(seed_val);
         runCodeWithTiming(size, trials, dimension);
         return 0;
     }
@@ -535,14 +543,12 @@ int main(int argc, char** argv){
     if (flag == 4) {
 
         // First param is the dimension; second is the graph size
-        rand_gen.seed(seed_val);
         testPruning(4, 8000);
     }
 
     if (flag == 5) {
 
         // Populate table in writeup
-        rand_gen.seed(seed_val);
         generateOutput();
         return 0;
     }
