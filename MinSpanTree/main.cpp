@@ -27,14 +27,6 @@ double generateRandomVal() {
     return generate_canonical<double, 50>(rand_gen);
 }
 
-/*
- Calc threshold with .015 error bound
-*/
-
-double inline threshold(long n){
-    return 1.1473 * pow((double) n, 0.296) + 0.015;
-}
-
 
 /*
  GRAPH GENERATION
@@ -94,6 +86,32 @@ bool calcEuclideanDist(Vertex* u, Vertex* v, double *d, double threshold) {
     }
     *d = sqrt(total);
     return true;
+}
+
+// TODO This will be a totally different function depending on dimensions. It's not just n that will change.
+// TODO Calculate Residuals correctly
+// See writeup for explanation of k(n) and error bound of 0.015
+double inline calculatePruningThreshold(long n, int dimension=3){
+
+    switch (dimension)
+    {
+        case 0:
+            return 1.1473 * pow((double) n, 0.296) + 0.015;
+
+        case 2:
+            return 1.1473 * pow((double) n, 0.296) + 0.015;
+
+        case 3:
+            return 1.1473 * pow((double) n, 0.296) + 0.015;
+
+        case 4:
+            return 1.1473 * pow((double) n, 0.296) + 0.015;
+
+        default:
+            return 2;
+
+    }
+
 }
 
 Graph generateGraph(long size, int dimensions, double weightThresh) {
