@@ -367,11 +367,13 @@ int main(int argc, char** argv){
         rand_gen.seed(seed_val);
         clock_t genTime;
         genTime = clock();
-        auto G = generateGraph(size, dimensions, .1815);
+        auto G = generateGraph(size, dimensions, calculatePruningThreshold(size, dimensions));
         double gen_total = (clock() - genTime) / (double)(CLOCKS_PER_SEC);
          cout << "Time for Graph Generation:    " << gen_total << " s" << endl;
         
         
+        
+
         clock_t start;
         start = clock();
 
