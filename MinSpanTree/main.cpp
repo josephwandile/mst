@@ -209,7 +209,7 @@ MST findMST(Graph& G){
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
             foundMST.path.push_back(E);
-            cout << "Added edge number " << foundMST.path.size() << "." << endl;
+            //cout << "Added edge number " << foundMST.path.size() << "." << endl;
             foundMST.total_weight += E->distance;
             setUnion(E->u, E->v);
         }
@@ -338,7 +338,7 @@ int main(int argc, char** argv){
     }
 
     if (flag == 2) {
-        testMaxWeight(3, "200_1000_50_trials.txt", 50, 200, 1000);
+        testMaxWeight(2, "5_500_500_trials_2D.txt", 100, 5, 500);
         return 0;
     }
 
@@ -347,16 +347,21 @@ int main(int argc, char** argv){
 
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
-        auto G = generateGraph(size, dimensions, threshold(size));
+        clock_t genTime;
+        genTime = clock();
+        auto G = generateGraph(size, dimensions, .1815);
+        double gen_total = (clock() - genTime) / (double)(CLOCKS_PER_SEC);
+         cout << "Time for Graph Generation:    " << gen_total << " s" << endl;
         
-        clock_t    start;
+        
+        clock_t start;
         start = clock();
 
         auto MST = findMST(G);
 
-        double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+        double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC);
 
-        cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " ms" << endl;
+        cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " s" << endl;
 
         total_time += trial_time;
 
@@ -369,7 +374,7 @@ int main(int argc, char** argv){
 
     avg_time = total_time / trials;
 
-    cout << "Average time over " << trials << " trials:    " << avg_time << " ms" << endl;
+    cout << "Average time over " << trials << " trials:    " << avg_time << " s" << endl;
 
 
     return 0;
