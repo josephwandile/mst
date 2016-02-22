@@ -10,6 +10,7 @@
 #include <sstream>
 #include <ctime>
 #include <String>
+#include <boost/random.hpp>
 
 using namespace std;
 const auto time_seed = static_cast<size_t>(time(0));
@@ -47,7 +48,7 @@ typedef struct Graph {
 double generateRandomVal() {
 
     // Random value between 0 and 1
-    return generate_canonical<double, 50>(rand_gen);
+    return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 }
 
 // Vertices == singleton sets in disjoint set data structure
@@ -353,7 +354,7 @@ void generateOutput() {
     //ofstream outputFile("OUTPUT.txt", ofstream::out);
     cout << "Size\t0\t\t2\t\3\t4\n";
     // loop through graph sizes
-    for (int i = 16; i <= 65536; i *= 2) {
+    for (int i = 131072; true; i *= 2) {
         //cout << "On graph size " << i << " for dimension " << endl;
         cout << i << "\t";
         // loop through dimensions
