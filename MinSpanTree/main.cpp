@@ -28,6 +28,14 @@ double generateRandomVal() {
     return generate_canonical<double, 50>(rand_gen);
 }
 
+/*
+ Calc threshold with .015 error bound
+*/
+
+double inline threshold(long n){
+    return 1.1473 * pow((double) n, 0.296) + 0.015;
+}
+
 
 /*
  GRAPH GENERATION
@@ -203,6 +211,7 @@ MST findMST(Graph& G){
     for(Edge* E : G.edges){
         if (find(E->u) != find(E->v)){
             foundMST.path.push_back(E);
+            cout << "Added edge number " << foundMST.path.size() << "." << endl;
             foundMST.total_weight += E->distance;
             setUnion(E->u, E->v);
         }
@@ -270,9 +279,9 @@ void testUtilityFunctions() {
     
 }
 
-void testMaxWeight(int dimensions, string outputLoc, int numTrials, int maxNodes){
+void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes, int maxNodes){
     ofstream outputFile(outputLoc);
-    for (int i = 5; i <= maxNodes; i++){
+    for (int i = minNodes; i <= maxNodes; i++){
         cout << "Doing " << numTrials << " trials for i = " << i << endl;
         double avg = 0.0;
         for(int j = 0; j < numTrials; j++){
@@ -338,7 +347,7 @@ int main(int argc, char** argv){
     }
     
     if (flag == 2) {
-        testMaxWeight(3, "SmallNMany50Trials.txt", 500, 200);
+        testMaxWeight(3, "200_1000_50_trials.txt", 50, 200, 1000);
         return 0;
     }
     
@@ -348,7 +357,7 @@ int main(int argc, char** argv){
     // TODO record and aggregate data !!
     for (int trial = 0; trial < trials; trial++) {
         rand_gen.seed(seed_val);
-        auto G = generateGraph(size, dimensions, .1815);
+        auto G = generateGraph(size, dimensions, threshold(size));
         
         clock_t    start;
         start = clock();
