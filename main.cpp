@@ -1,5 +1,6 @@
 #include <iostream>
 #include <set>
+#include <thread>
 #include <vector>
 #include <ctime>
 #include <cmath>
@@ -7,10 +8,17 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
-#include <String>
+#include <string>
+#include <cstdlib>
+#include <algorithm>
+#include <random>
 
 using namespace std;
-
+const auto time_seed = static_cast<size_t>(time(0));
+const auto clock_seed = static_cast<size_t>(clock());
+const size_t pid_seed = hash<thread::id>()(this_thread::get_id());
+seed_seq seed_val { time_seed, clock_seed, pid_seed };
+mt19937_64 rand_gen;
 
 /*
  GRAPH GENERATION
@@ -491,7 +499,7 @@ int main(int argc, char** argv){
     }
     
     
-    srand (static_cast <unsigned> (time(0)));
+    rand_gen.seed(seed_val);
 
     if (flag == 0) {
 
@@ -553,3 +561,4 @@ int main(int argc, char** argv){
         return 0;
     }
 }
+
