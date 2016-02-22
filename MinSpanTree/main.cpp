@@ -276,7 +276,7 @@ MST findMST(Graph& G){
  TESTING
  */
 
-// Basis testing of Kruskal's implementation
+// Basic testing of Kruskal's implementation
 void testHardcodedGraph() {
 
     // Hardcoded vertices and edges
@@ -310,12 +310,12 @@ void testHardcodedGraph() {
     double true_weight = 39;
     MST true_MST {true_path, true_weight};
 
-    double false_weight = 40;
     vector<Edge*> false_path {AD, CE, DF, AB, BE, EF};
+    double false_weight = 40;
     MST false_MST {false_path, false_weight};
 
-    assert(found_MST.path == true_MST.path && found_MST.total_weight == true_MST.total_weight);
-    assert(found_MST.path != false_MST.path && found_MST.total_weight != false_MST.total_weight);
+    assert(found_MST.path == true_MST.path);
+    assert(found_MST.path != false_MST.path);
 
     for (Edge* E : G_test.edges)
         free(E);
