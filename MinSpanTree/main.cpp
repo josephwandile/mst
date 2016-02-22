@@ -108,7 +108,7 @@ double inline calculatePruningThreshold(long n, int dimension=3){
             return 1.1473 * pow((double) n, 0.296) + 0.015;
 
         default:
-            return 2;
+            return 1;
 
     }
 
@@ -360,42 +360,36 @@ int main(int argc, char** argv){
         return 0;
     }
 
-    double total_time = 0;
-    double avg_time = 0;
+    double total_search_time = 0;
+    double avg_search_time = 0;
 
     for (int trial = 0; trial < trials; trial++) {
+
         rand_gen.seed(seed_val);
-        clock_t genTime;
-        genTime = clock();
+
+        clock_t gen_start_time = clock();
         auto G = generateGraph(size, dimensions, calculatePruningThreshold(size, dimensions));
-        double gen_total = (clock() - genTime) / (double)(CLOCKS_PER_SEC);
-         cout << "Time for Graph Generation:    " << gen_total << " s" << endl;
-        
-        
-        
+        double gen_total_time = (clock() - gen_start_time) / (double)(CLOCKS_PER_SEC);
 
-        clock_t start;
-        start = clock();
+        cout << "Time for Graph Generation:    " << gen_total_time << "s" << endl;
 
+        clock_t search_start_time = clock();
         auto MST = findMST(G);
+        double search_total_time = (clock() - search_start_time) / (double)(CLOCKS_PER_SEC);
 
-        double trial_time = (clock() - start) / (double)(CLOCKS_PER_SEC);
+        cout << "Time for Trial " << trial + 1 << ":    " << search_total_time << "s" << endl;
 
-        cout << "Time for Trial " << trial + 1 << ":    " << trial_time << " s" << endl;
-
-        total_time += trial_time;
+        total_search_time += search_total_time;
 
         for (Edge* E : G.edges)
             free(E);
         for (Vertex* V : G.vertices)
             free(V);
-
     }
 
-    avg_time = total_time / trials;
+    avg_search_time = total_search_time / trials;
 
-    cout << "Average time over " << trials << " trials:    " << avg_time << " s" << endl;
-
+    cout << "Average search time over " << trials << " trials:    " << avg_search_time << "s" << endl;
 
     return 0;
 }
