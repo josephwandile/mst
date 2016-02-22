@@ -339,7 +339,6 @@ void testMaxWeight(int dimensions, string outputLoc, int numTrials, int minNodes
 
 void generateOutput() {
     rand_gen.seed(seed_val);
-    stringstream ss;
     //ofstream outputFile("OUTPUT.txt", ofstream::out);
     cout << "Size\t0\t\t2\t\3\t4\n";
     // loop through graph sizes
@@ -355,7 +354,7 @@ void generateOutput() {
             double total = 0.0;
             for (int t = 0; t < 5; t++) {
                 
-                auto G = generateGraph(i, d, 100);
+                auto G = generateGraph(i, d, calculatePruningThreshold(i));
                 auto MST = findMST(G);
                 total += MST.total_weight;
                 for (Edge* E : G.edges)
@@ -363,6 +362,7 @@ void generateOutput() {
                 for (Vertex* V : G.vertices)
                     free(V);
                 MST.total_weight = 0;
+                MST.path.clear();
             }
             double avg_weight = total / 5;
             cout << avg_weight << "\t";
@@ -370,6 +370,7 @@ void generateOutput() {
         }
         cout << "\n";
     }
+    
 }
 
 /*
